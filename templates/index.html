@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Flask LDAP Web</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        #content { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Flask LDAP Web</h1>
+    <div>
+        <label>Username: <input type="text" id="username"></label><br>
+        <label>Password: <input type="password" id="password"></label><br>
+        <button onclick="login()">Đăng nhập</button>
+        <button onclick="logout()">Đăng xuất</button>
+    </div>
+    <div id="content">
+        <p>Vui lòng đăng nhập để xem nội dung.</p>
+    </div>
+
+    <script>
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username, password})
+            });
+            const data = await res.json();
+            if (res.ok) {
+                alert(data.message);
+                loadHome();
+            } else {
+                alert(data.message);
+            }
+        }
+
+        async function loadHome() {
+            const res = await fetch('/api/home');
+            const data = await res.json();
+            if (!res.ok) {
+                document.getElementById('content').innerHTML = '<p>Chưa đăng nhập.</p>';
+                return;
+            }
+
+            let html = `<h3>Xin chào ${data.username}!</h3>`;
+            html += `<p>Vai trò: ${data.role}</p>`;
+            html += `<h4>Tài liệu:</h4><ul>`;
+            data.files.forEach(file => {
+                html += `<li><a href="/uploads/${file}" target="_blank">${file}</a></li>`;
+            });
+            html += `</ul>`;
+
+            if (data.role === 'teacher') {
+                html += `<h4>Upload tài liệu:</h4>
+                    <input type="file" id="uploadFile">
+                    <button onclick="uploadFile()">Upload</button>`;
+            }
+
+            document.getElementById('content').innerHTML = html;
+        }
+
+        async function uploadFile() {
+            const fileInput = document.getElementById('uploadFile');
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            const res = await fetch('/api/home', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (res.ok) {
+                alert(data.message);
+                loadHome();
+            } else {
+                alert(data.message);
+            }
+        }
+
+        async function logout() {
+            const res = await fetch('/api/logout', {method: 'POST'});
+            const data = await res.json();
+            alert(data.message);
+            document.getElementById('content').innerHTML = '<p>Đã đăng xuất.</p>';
+        }
+    </script>
+</body>
+</html>

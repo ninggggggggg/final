@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Trang sinh viên</title>
+</head>
+<body>
+    <h1>Chào {{ username }} (Student)</h1>
+    <a href="{{ url_for('logout') }}">Đăng xuất</a>
+    <h2>Danh sách tài liệu</h2>
+    <ul>
+    {% for file in files %}
+        <li><a href="{{ url_for('uploaded_file', filename=file) }}" target="_blank">{{ file }}</a></li>
+    {% endfor %}
+    </ul>
+</body>
+</html>
