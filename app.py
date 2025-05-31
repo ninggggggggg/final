@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, session, render_template, send_from_directory, redirect, url_for
-from ldap3 import Server, Connection, ALL
+from ldap3 import Server, Connection, ALL, SUBTREE
 import os
 
 app = Flask(__name__)
@@ -9,6 +9,42 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 LDAP_SERVER = 'ldap://10.2.1.1'
 LDAP_BASE_DN = 'DC=iris,DC=com,DC=vn'
+LDAP_BIND_USER = 'CN=ldapsearchuser,CN=Users,DC=iris,DC=com,DC=vn'  # Thay bằng user có quyền search
+LDAP_BIND_PASSWORD = 'ldapsearchpassword'  # Thay bằng pass của user search
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        server = Server(LDAP_SERVER, get_info=ALL)
+        
+        # Step 1: Kết nối với user search để tìm DN của user
+        conn = Connection(server, user=LDAP_BIND_USER, password=LDAP_BIND_PASSWORD, auto_bind=True)
+        conn.search(LDAP_BASE_DN, f'(sAMAccountName={username})', SUBTREE, attributes=['distinguishedName'])
+        
+        if not conn.entries:
+            return render_template('login.html', error='User không tồn tại!')
+        
+        user_dn = conn.entries[0].distinguishedName.value
+        
+        # Step 2: Bind bằng user_dn và password user
+        user_conn = Connection(server, user=user_dn, password=password, auto_bind=True)
+        if user_conn.bind():
+            dn = user_dn
+            if 'OU=Students' in dn:
+                role = 'student'
+            elif 'OU=Teachers' in dn:
+                role = 'teacher'
+            else:
+                role = 'unknown'
+            session['username'] = username
+            session['role'] = role
+            return redirect(url_for(f'{role}_home'))
+        else:
+            return render_template('login.html', error='Đăng nhập thất bại!')
+    
+    return render_template('login.html')
 
 @app.route('/')
 def index():
@@ -19,31 +55,6 @@ def index():
             return redirect(url_for('student_home'))
     return redirect(url_for('login'))
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        user_dn = f'CN={username},OU=Users,{LDAP_BASE_DN}'
-        server = Server(LDAP_SERVER, get_info=ALL)
-        conn = Connection(server, user=user_dn, password=password, auto_bind=True)
-        if conn.bind():
-            conn.search(search_base=LDAP_BASE_DN,
-                        search_filter=f'(sAMAccountName={username})',
-                        attributes=['distinguishedName'])
-            dn = conn.entries[0].distinguishedName.value
-            if 'OU=Students' in dn:
-                role = 'student'
-            elif 'OU=Teachers' in dn:
-                role = 'teacher'
-            else:
-                role = 'unknown'
-            session['username'] = username
-            session['role'] = role
-            return redirect(url_for(f'{role}_home'))  # teacher_home hoặc student_home
-        else:
-            return render_template('login.html', error='Đăng nhập thất bại!')
-    return render_template('login.html')
 
 @app.route('/student')
 def student_home():
