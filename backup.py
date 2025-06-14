@@ -69,12 +69,40 @@ def index():
     return redirect(url_for('login'))
 
 
-@app.route('/student')
+@app.route('/student', methods=['GET', 'POST'])
 def student_home():
     if 'username' not in session or session['role'] != 'student':
         return redirect(url_for('login'))
-    files = os.listdir(UPLOAD_FOLDER['student'])
-    return render_template('student.html', username=session['username'], files=files)
+    search_term = request.args.get('q', '').lower()
+
+    all_files = os.listdir(UPLOAD_FOLDER['student'])
+
+    if search_term:
+        filtered_files = [f for f in all_files if search_term in f.lower()]
+    else:
+        filtered_files = all_files
+
+    ssti_input = request.args.get('q', '')  # GIẢ LẬP SSTI TỪ INPUT
+
+    template = f"""
+    <form action="" method="get">
+        <input type="text" name="q" value="{ssti_input}" placeholder="Tìm tài liệu...">
+        <button type="submit">Search</button>
+    </form>
+    <h3>Tìm thấy {len(filtered_files)} file</h3>
+
+    <!-- Đây là chỗ có lỗi SSTI -->
+    <p>File đầu tiên tìm được (có thể chứa SSTI): {ssti_input}</p>
+
+    <ul>
+        {{% for file in files %}}
+            <li>{{{{ file }}}}</li>
+        {{% endfor %}}
+    </ul>
+    """
+
+    return render_template_string(template, files=filtered_files)
+
 
 
 @app.route('/teacher', methods=['GET', 'POST'])
