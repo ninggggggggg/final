@@ -27,34 +27,20 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        server = Server(LDAP_SERVER, get_info=ALL)
 
-        try:
-            conn = Connection(server, user=LDAP_BIND_USER, password=LDAP_BIND_PASSWORD, auto_bind=True)
-            conn.search(LDAP_BASE_DN, f'(sAMAccountName={username})', SUBTREE, attributes=['distinguishedName'])
+        # GIẢ LẬP NGƯỜI DÙNG CỐ ĐỊNH
+        mock_users = {
+            'studentA': {'password': '123', 'role': 'student'},
+            'teacherA': {'password': '456', 'role': 'teacher'}
+        }
 
-            if not conn.entries:
-                return render_template('login.html', error='User không tồn tại!')
-
-            user_dn = conn.entries[0].distinguishedName.value
-            conn.unbind()
-        except Exception as e:
-            return render_template('login.html', error=f'Lỗi kết nối LDAP: {str(e)}')
-
-        try:
-            user_conn = Connection(server, user=user_dn, password=password, auto_bind=True)
-            role = 'unknown'
-            if 'OU=Students' in user_dn:
-                role = 'student'
-            elif 'OU=Teachers' in user_dn:
-                role = 'teacher'
-
+        user = mock_users.get(username)
+        if user and user['password'] == password:
             session['username'] = username
-            session['role'] = role
-            user_conn.unbind()
-            return redirect(url_for(f'{role}_home'))
-        except Exception as e:
-            return render_template('login.html', error='Đăng nhập thất bại!')
+            session['role'] = user['role']
+            return redirect(url_for(f"{user['role']}_home"))
+        else:
+            return render_template('login.html', error='Sai tài khoản hoặc mật khẩu!')
 
     return render_template('login.html')
 
