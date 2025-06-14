@@ -1,18 +1,40 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <title>Đăng nhập</title>
-</head>
-<body>
-    <h1>Đăng nhập</h1>
-    <form method="post">
-        <label>Username: <input type="text" name="username"></label><br>
-        <label>Password: <input type="password" name="password"></label><br>
-        <button type="submit">Đăng nhập</button>
-    </form>
+{% extends "base.html" %}
+
+{% block title %}Đăng nhập - Hệ thống quản lý tài liệu{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="header">
+        <h1>🎓 Hệ thống quản lý tài liệu</h1>
+        <p>Đăng nhập để tiếp tục</p>
+    </div>
+
     {% if error %}
-    <p style="color:red;">{{ error }}</p>
+    <div class="error">
+        <strong>❌ Lỗi:</strong> {{ error }}
+    </div>
     {% endif %}
-</body>
-</html>
+
+    <form method="POST" action="/login">
+        <div class="form-group">
+            <label for="username">Tên đăng nhập:</label>
+            <input type="text" id="username" name="username" placeholder="Nhập tên đăng nhập" required>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Mật khẩu:</label>
+            <input type="password" id="password" name="password" placeholder="Nhập mật khẩu" required>
+        </div>
+
+        <button type="submit" class="btn" style="width: 100%;">🔐 Đăng nhập</button>
+    </form>
+
+    <div style="margin-top: 2rem; padding: 1rem; background: #f8f9fa; border-radius: 5px; border-left: 4px solid #667eea;">
+        <h4>📋 Tài khoản demo:</h4>
+        <div style="margin-top: 1rem;">
+            <p><strong>👨‍🎓 Học sinh:</strong> <code>studentA</code> / <code>123</code></p>
+            <p><strong>👨‍🏫 Giáo viên:</strong> <code>teacherA</code> / <code>456</code></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Trang chủ Giáo viên - Hệ thống quản lý tài liệu{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="navbar">
+        <div class="user-info">
+            <h2>👨‍🏫 Chào giáo viên: {{ session.username }}</h2>
+        </div>
+        <a href="/logout" class="btn btn-secondary">🚪 Đăng xuất</a>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('upload')">📤 Upload tài liệu</div>
+        <div class="tab" onclick="switchTab('search')">🔍 Tìm kiếm</div>
+    </div>
+
+    <!-- Upload Tab -->
+    <div class="tab-content active" id="upload-tab">
+        {% if error %}
+        <div class="error">
+            <strong>❌ Lỗi:</strong> {{ error }}
+        </div>
+        {% endif %}
+
+        <div class="upload-area">
+            <form action="/teacher" method="post" enctype="multipart/form-data">
+                <h3>📁 Tải lên tài liệu mới</h3>
+                <p style="color: #666; margin-bottom: 1rem;">Chọn file để chia sẻ với học sinh</p>
+                
+                <div class="form-group">
+                    <input type="file" 
+                           name="file" 
+                           accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.jpg,.png,.xlsx,.xls" 
+                           required>
+                </div>
+                
+                <button type="submit" class="btn">📤 Tải lên</button>
+            </form>
+        </div>
+
+        <div style="margin-top: 2rem; padding: 1rem; background: #f0f9ff; border-radius: 5px; border-left: 4px solid #0ea5e9;">
+            <h4>📋 Định dạng file được hỗ trợ:</h4>
+            <div style="margin-top: 1rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem;">
+                <div>📄 <strong>Tài liệu:</strong> PDF, DOC, DOCX</div>
+                <div>📊 <strong>Bài thuyết trình:</strong> PPT, PPTX</div>
+                <div>📈 <strong>Bảng tính:</strong> XLS, XLSX</div>
+                <div>🖼️ <strong>Hình ảnh:</strong> JPG, PNG</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Tab -->
+    <div class="tab-content" id="search-tab">
+        <h3>🔍 Tìm kiếm trong tài liệu của bạn</h3>
+        
+        <form action="/search" method="get" class="search-form">
+            <input type="hidden" name="role" value="teacher">
+            <input type="text" name="q" placeholder="Tìm kiếm trong tài liệu của bạn..." id="teacher-search-input">
+            <button type="submit" class="btn">🔍 Tìm kiếm</button>
+        </form>
+
+        <div style="margin-top: 2rem; padding: 1rem; background: #fef3c7; border-radius: 5px; border-left: 4px solid #f59e0b;">
+            <h4>💡 Mẹo tìm kiếm:</h4>
+            <div style="margin-top: 1rem;">
+                <p>• Tìm theo tên file: <code>bai_giang_toan</code></p>
+                <p>• Tìm theo phần mở rộng: <code>.pdf</code> hoặc <code>.ppt</code></p>
+                <p>• Tìm theo từ khóa: <code>đề thi</code>, <code>bài tập</code></p>
+                <p>• Kết hợp nhiều từ khóa: <code>toán học lớp 10</code></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-switch to search tab if there's a search result in URL
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('q')) {
+        switchTab('search');
+        document.getElementById('teacher-search-input').value = urlParams.get('q');
+    }
+});
+</script>
+{% endblock %}

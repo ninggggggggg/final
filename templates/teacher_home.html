@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Trang chủ giáo viên - {{ session.username }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="navbar">
+        <div class="user-info">
+            <h2>👨‍🏫 Chào giáo viên: {{ session.username }}</h2>
+        </div>
+        <a href="/logout" class="btn btn-secondary">🚪 Đăng xuất</a>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('upload')">📤 Upload tài liệu</div>
+        <div class="tab" onclick="switchTab('search')">🔍 Quản lý tài liệu</div>
+    </div>
+
+    <!-- Upload Tab -->
+    <div class="tab-content active" id="upload-tab">
+        <div class="header">
+            <h3>📁 Tải lên tài liệu mới</h3>
+            <p>Chia sẻ tài liệu giảng dạy với học sinh</p>
+        </div>
+
+        {% if error %}
+        <div class="error">
+            ⚠️ {{ error }}
+        </div>
+        {% endif %}
+
+        <div class="upload-area">
+            <form action="/teacher" method="post" enctype="multipart/form-data">
+                <h4>📋 Chọn file để tải lên</h4>
+                <div class="form-group">
+                    <input type="file" name="file" 
+                           accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.jpg,.png,.xlsx,.xls" 
+                           required>
+                </div>
+                <button type="submit" class="btn">
+                    📤 Tải lên tài liệu
+                </button>
+            </form>
+        </div>
+
+        <div class="demo-info">
+            <h4>📋 Định dạng file được hỗ trợ:</h4>
+            <p>📄 Tài liệu: PDF, DOC, DOCX, TXT</p>
+            <p>📊 Bài thuyết trình: PPT, PPTX</p>
+            <p>📈 Bảng tính: XLS, XLSX</p>
+            <p>🖼️ Hình ảnh: JPG, PNG</p>
+        </div>
+    </div>
+
+    <!-- Search Tab -->
+    <div class="tab-content" id="search-tab">
+        <div class="header">
+            <h3>🔍 Quản lý tài liệu đã tải lên</h3>
+            <p>Tìm kiếm và quản lý tài liệu của bạn</p>
+        </div>
+
+        <form action="/search" method="get" class="search-form">
+            <input type="hidden" name="role" value="teacher">
+            <input type="text" name="q" placeholder="Tìm kiếm trong tài liệu của bạn..." autocomplete="off">
+            <button type="submit" class="btn">🔍 Tìm kiếm</button>
+        </form>
+
+        <div class="upload-area">
+            <h4>📊 Thống kê</h4>
+            <p>📁 Tổng số tài liệu đã tải lên</p>
+            <p>👥 Số lượt truy cập từ học sinh</p>
+            <p>🔄 Cập nhật gần nhất</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
