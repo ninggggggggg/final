@@ -25,6 +25,11 @@ LDAP_BIND_PASSWORD = 'User@123'
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
+        if 'guest_access' in request.form:
+            session['username'] = 'guest'
+            session['role'] = 'guest'
+            return redirect(url_for('labs_home'))
+        
         username = request.form['username']
         password = request.form['password']
 
@@ -56,7 +61,93 @@ def index():
 
 @app.route('/labs')
 def labs_home():
-    return render_template('labs.html')  # Trang tổng hợp link tới từng lab, giới thiệu chung về attack kill chain
+    # Dữ liệu cho Kill Chain
+    kill_chain = [
+        {
+            "phase": "1. Reconnaissance",
+            "description": "Thu thập thông tin mục tiêu và dò quét hệ thống.",
+            "labs": [1]
+        },
+        {
+            "phase": "2. Weaponization", 
+            "description": "Chuẩn bị công cụ và payload để tấn công hệ thống.",
+            "labs": [2]
+        },
+        {
+            "phase": "3. Delivery",
+            "description": "Gửi payload qua endpoint /search và đăng nhập máy trạm.",
+            "labs": [1, 2]
+        },
+        {
+            "phase": "4. Exploitation",
+            "description": "Khai thác lỗ hổng SSTI và kỹ thuật Kerberoasting.",
+            "labs": [1, 2, 3]
+        },
+        {
+            "phase": "5. Installation",
+            "description": "Truy cập domain controller và cài foothold (hash access).",
+            "labs": [3]
+        },
+        {
+            "phase": "6. Command & Control",
+            "description": "Điều khiển máy chủ thông qua kỹ thuật Pass-the-Hash.",
+            "labs": [3]
+        },
+        {
+            "phase": "7. Actions on Objectives",
+            "description": "Chiếm quyền truy cập, trích xuất dữ liệu nhạy cảm.",
+            "labs": [1, 2, 3]
+        }
+    ]
+
+    
+    # Dữ liệu cho các Lab
+    labs = [
+        {
+            "id": 1,
+            "title": "💥 Exploiting SSTI in Flask WebApp",
+            "category": "Reconnaissance",
+            "difficulty": "Beginner",
+            "description": "Khám phá kỹ thuật thu thập thông tin và khai thác lỗ hổng Server-Side Template Injection (SSTI) trên một ứng dụng Flask cấu hình sai.",
+            "objectives": [
+                "Dò tìm endpoint bị lộ hoặc cấu hình sai",
+                "Xác định và khai thác lỗ hổng SSTI",
+                "Thực thi mã lệnh và đọc file nội bộ trên server",
+                "Trích xuất thông tin nhạy cảm phục vụ tấn công kế tiếp"
+            ],
+            "url": "/labs/1"
+        },
+        {
+            "id": 2,
+            "title": "🧠 Privilege Escalation & AD Hash Extraction",
+            "category": "Lateral Movement",
+            "difficulty": "Intermediate",
+            "description": "Mô phỏng quá trình leo thang đặc quyền trong môi trường domain thông qua kỹ thuật Kerberoasting và AS-REP Roasting, bắt đầu từ một tài khoản người dùng thông thường đã bị chiếm quyền.",
+            "objectives": [
+                "Chiếm quyền truy cập máy trạm nội bộ (Workstation01)",
+                "Thực hiện AS-REP Roasting để thu thập hash từ tài khoản không yêu cầu pre-auth",
+                "Thực hiện Kerberoasting để thu thập hash từ tài khoản có SPN",
+                "Crack offline các hash để lấy thông tin đăng nhập có đặc quyền cao hơn"
+            ],
+            "url": "/labs/2"
+        },
+        {
+            "id": 3,
+            "title": "🛡️ Exploiting Backup Privileges on Domain Controller",
+            "category": "Privilege Escalation",
+            "difficulty": "Advanced",
+            "description": "Mô phỏng tấn công vào Domain Controller bằng cách lạm dụng quyền SeBackupPrivilege để dump registry hive (SAM & SYSTEM) và trích xuất hash mật khẩu từ máy chủ AD, không cần đặc quyền admin.",
+            "objectives": [
+                "Sử dụng tài khoản có quyền SeBackupPrivilege (Backup Operators)",
+                "Dump offline SAM và SYSTEM từ Domain Controller",
+                "Trích xuất và phân tích NTLM hash bằng công cụ như secretsdump.py",
+                "Sử dụng kỹ thuật Pass-the-Hash hoặc crack offline để mở rộng quyền truy cập"
+            ],
+            "url": "/labs/3"
+        }
+    ]
+    
+    return render_template('lab.html', kill_chain=kill_chain, labs=labs)
 
 @app.route('/labs/1')
 def lab1():

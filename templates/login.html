@@ -29,6 +29,23 @@
         <button type="submit" class="btn" style="width: 100%;">🔐 Đăng nhập</button>
     </form>
 
+    <div style="margin-top: 1.5rem; text-align: center;">
+        <div style="position: relative; margin: 1rem 0;">
+            <hr style="border: 0; height: 1px; background: #ddd;">
+            <span style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: white; padding: 0 15px; color: #666; font-size: 0.9rem;">HOẶC</span>
+        </div>
+        
+        <form method="POST" action="/login" style="margin-top: 1rem;">
+            <input type="hidden" name="guest_access" value="true">
+            <button type="submit" class="btn" style="width: 100%; background: #28a745; border-color: #28a745;">
+                🚀 Tiếp tục mà không cần đăng nhập
+            </button>
+        </form>
+        <p style="font-size: 0.8rem; color: #666; margin-top: 0.5rem;">
+            Truy cập trực tiếp vào phần Labs để thực hành bảo mật
+        </p>
+    </div>
+
     <div style="margin-top: 2rem; padding: 1rem; background: #f8f9fa; border-radius: 5px; border-left: 4px solid #667eea;">
         <h4>📋 Tài khoản demo:</h4>
         <div style="margin-top: 1rem;">
@@ -37,4 +54,15 @@
         </div>
     </div>
 </div>
+
+<style>
+.btn {
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+</style>
 {% endblock %}

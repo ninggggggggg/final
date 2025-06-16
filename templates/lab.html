@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cybersecurity Labs - Attack Kill Chain</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .kill-chain-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .kill-chain-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .kill-chain-phase {
+            background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .kill-chain-phase:hover {
+            transform: translateY(-5px);
+        }
+
+        .labs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .lab-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+            border-left: 5px solid #667eea;
+        }
+
+        .lab-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+        }
+
+        .lab-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .lab-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .difficulty {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .difficulty.beginner {
+            background: #27ae60;
+            color: white;
+        }
+
+        .difficulty.intermediate {
+            background: #f39c12;
+            color: white;
+        }
+
+        .difficulty.advanced {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .lab-category {
+            background: #3498db;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        .lab-description {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .objectives {
+            margin-bottom: 20px;
+        }
+
+        .objectives h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .objectives ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .objectives li {
+            padding: 5px 0;
+            padding-left: 20px;
+            position: relative;
+            color: #555;
+        }
+
+        .objectives li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .lab-button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-align: center;
+            width: 100%;
+        }
+
+        .lab-button:hover {
+            background: linear-gradient(45deg, #5a6fd8, #6a4190);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .labs-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .kill-chain-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="/" class="back-btn">← Trang chủ</a>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ Cybersecurity Labs</h1>
+            <p>Hệ thống bài thực hành về Attack Kill Chain và các kỹ thuật tấn công</p>
+        </div>
+
+        <div class="kill-chain-section">
+            <h2 style="text-align: center; margin-bottom: 20px; color: #2c3e50;">
+                🎯 Cyber Attack Kill Chain
+            </h2>
+            <p style="text-align: center; color: #666; margin-bottom: 20px;">
+                Mô hình 7 giai đoạn của một cuộc tấn công mạng hoàn chỉnh
+            </p>
+            
+            <div class="kill-chain-grid">
+                {% for phase in kill_chain %}
+                <div class="kill-chain-phase">
+                    <h3>{{ phase.phase }}</h3>
+                    <p style="font-size: 0.9rem; margin-top: 10px; opacity: 0.9;">
+                        {{ phase.description }}
+                    </p>
+                    {% if phase.labs %}
+                    <div style="margin-top: 10px;">
+                        <small>Labs: 
+                            {% for lab_id in phase.labs %}
+                                #{{ lab_id }}{% if not loop.last %}, {% endif %}
+                            {% endfor %}
+                        </small>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h2 style="color: white; font-size: 2.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+                🚀 Practical Labs
+            </h2>
+            <p style="color: white; opacity: 0.9; font-size: 1.1rem;">
+                Thực hành các kỹ thuật tấn công và phòng thủ
+            </p>
+        </div>
+
+        <div class="labs-grid">
+            {% for lab in labs %}
+            <div class="lab-card">
+                <div class="lab-header">
+                    <div class="lab-title">{{ lab.title }}</div>
+                    <div class="difficulty {{ lab.difficulty.lower() }}">
+                        {{ lab.difficulty }}
+                    </div>
+                </div>
+                
+                <div class="lab-category">
+                    {{ lab.category }}
+                </div>
+                
+                <div class="lab-description">
+                    {{ lab.description }}
+                </div>
+                
+                <div class="objectives">
+                    <h4>🎯 Mục tiêu:</h4>
+                    <ul>
+                        {% for objective in lab.objectives %}
+                        <li>{{ objective }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                
+                <a href="{{ lab.url }}" class="lab-button">
+                    Bắt đầu Lab {{ lab.id }} →
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div style="text-align: center; margin-top: 50px; color: white;">
+            <p style="opacity: 0.8;">
+                ⚠️ Các lab này chỉ dành cho mục đích học tập và nghiên cứu bảo mật
+            </p>
+        </div>
+    </div>
+</body>
+</html>
