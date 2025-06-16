@@ -54,13 +54,30 @@ def index():
             return redirect(url_for('student_home'))
     return redirect(url_for('login'))
 
+@app.route('/labs')
+def labs_home():
+    return render_template('labs.html')  # Trang tổng hợp link tới từng lab, giới thiệu chung về attack kill chain
+
+@app.route('/labs/1')
+def lab1():
+    return render_template('lab1.html')
+
+@app.route('/labs/2')
+def lab2():
+    return render_template('lab2.html')
+
+@app.route('/labs/3')
+def lab3():
+    return render_template('lab3.html')
+
+
 
 @app.route('/search')
 def search_files():
     role = request.args.get('role')
 
     if role not in UPLOAD_FOLDER:
-        return "Role không hợp lệ!", 400
+        role = 'student'  # Mặc định là student nếu không có role
 
     search_term = request.args.get('q', '').lower()
     all_files = os.listdir(UPLOAD_FOLDER[role])
