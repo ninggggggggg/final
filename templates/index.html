@@ -13,11 +13,11 @@
     <div>
         <label>Username: <input type="text" id="username"></label><br>
         <label>Password: <input type="password" id="password"></label><br>
-        <button onclick="login()">Đăng nhập</button>
-        <button onclick="logout()">Đăng xuất</button>
+        <button onclick="login()">Login</button>
+        <button onclick="logout()">Logout</button>
     </div>
     <div id="content">
-        <p>Vui lòng đăng nhập để xem nội dung.</p>
+        <p>Please log in to view the content.</p>
     </div>
 
     <script>
@@ -86,7 +86,7 @@
             const res = await fetch('/api/logout', {method: 'POST'});
             const data = await res.json();
             alert(data.message);
-            document.getElementById('content').innerHTML = '<p>Đã đăng xuất.</p>';
+            document.getElementById('content').innerHTML = '<p>Logged out successfully.</p>';
         }
     </script>
 </body>

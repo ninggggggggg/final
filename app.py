@@ -59,7 +59,6 @@ def index():
 def search_files():
     role = request.args.get('role')
 
-    # Không kiểm tra session! Mặc định ai cũng dùng được
     if role not in UPLOAD_FOLDER:
         return "Role không hợp lệ!", 400
 
@@ -93,14 +92,8 @@ def student_home():
     if 'username' not in session or session['role'] != 'student':
         return redirect(url_for('login'))
 
-    return """
-    <h1>Chào học sinh: {}</h1>
-    <form action="/search" method="get">
-        <input type="hidden" name="role" value="student">
-        <input type="text" name="q" placeholder="Tìm tài liệu...">
-        <button type="submit">Tìm kiếm</button>
-    </form>
-    """.format(session['username'])
+    return render_template('student_home.html')
+
 
 @app.route('/teacher', methods=['GET', 'POST'])
 def teacher_home():
@@ -108,6 +101,8 @@ def teacher_home():
         return redirect(url_for('login'))
 
     error = None
+    success = None
+    
     if request.method == 'POST':
         if 'file' not in request.files:
             error = 'Không có file upload!'
@@ -116,26 +111,14 @@ def teacher_home():
             if file.filename == '':
                 error = 'Tên file trống!'
             else:
-                filename = secure_filename(file.filename)
-                file.save(os.path.join(UPLOAD_FOLDER['teacher'], filename))
+                try:
+                    filename = secure_filename(file.filename)
+                    file.save(os.path.join(UPLOAD_FOLDER['teacher'], filename))
+                    success = f'Đã tải lên thành công: {filename}'
+                except Exception as e:
+                    error = f'Lỗi khi tải file: {str(e)}'
 
-    return """
-    <h1>Chào giáo viên: {}</h1>
-    {}
-    <form action="" method="post" enctype="multipart/form-data">
-        <input type="file" name="file">
-        <button type="submit">Upload</button>
-    </form>
-
-    <form action="/search" method="get">
-        <input type="hidden" name="role" value="teacher">
-        <input type="text" name="q" placeholder="Tìm tài liệu...">
-        <button type="submit">Tìm kiếm</button>
-    </form>
-    """.format(
-        session['username'],
-        f"<p style='color:red'>{error}</p>" if error else ""
-    )
+    return render_template('teacher_home.html', error=error, success=success)
 
 @app.route('/uploads/<role>/<filename>')
 def uploaded_file(role, filename):

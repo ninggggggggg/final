@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Kết quả tìm kiếm - Hệ thống quản lý tài liệu{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="navbar">
+        <div class="user-info">
+            <h2>🔍 Kết quả tìm kiếm</h2>
+            {% if request.args.get('q') %}
+            <p style="color: #999; font-size: 0.9rem;">Từ khóa: "{{ request.args.get('q') }}"</p>
+            {% endif %}
+        </div>
+        <div>
+            {% if session.role == 'student' %}
+                <a href="/student" class="btn btn-secondary">← Quay lại</a>
+            {% elif session.role == 'teacher' %}
+                <a href="/teacher" class="btn btn-secondary">← Quay lại</a>
+            {% endif %}
+            <a href="/logout" class="btn btn-secondary">🚪 Đăng xuất</a>
+        </div>
+    </div>
+
+    <div class="search-form">
+        <form action="/search" method="get">
+            <input type="hidden" name="role" value="{{ request.args.get('role', '') }}">
+            <input type="text" 
+                   name="q" 
+                   placeholder="Tìm kiếm..." 
+                   value="{{ request.args.get('q', '') }}">
+            <button type="submit" class="btn">🔍 Tìm lại</button>
+        </form>
+    </div>
+
+    <div class="result-info" style="margin-bottom: 2rem;">
+        <h3>📊 Tìm thấy {{ files|length }} kết quả</h3>
+        {% if request.args.get('q') %}
+        <p style="color: #666;">Kết quả cho từ khóa: <strong>"{{ request.args.get('q') }}"</strong></p>
+        {% endif %}
+    </div>
+
+    {% if files %}
+    <ul class="file-list">
+        {% for file in files %}
+        <li>
+            <div style="display: flex; align-items: center; gap: 1rem; flex: 1;">
+                <div style="font-size: 1.5rem;">
+                    {% if file.endswith(('.pdf',)) %}📄
+                    {% elif file.endswith(('.doc', '.docx')) %}📝
+                    {% elif file.endswith(('.ppt', '.pptx')) %}📊
+                    {% elif file.endswith(('.xls', '.xlsx')) %}📈
+                    {% elif file.endswith(('.jpg', '.jpeg', '.png')) %}🖼️
+                    {% elif file.endswith(('.txt',)) %}📋
+                    {% else %}📁
+                    {% endif %}
+                </div>
+                <div>
+                    <strong>{{ file }}</strong>
+                    <div style="font-size: 0.9rem; color: #666;">
+                        {% if file.endswith(('.pdf',)) %}Tài liệu PDF
+                        {% elif file.endswith(('.doc', '.docx')) %}Tài liệu Word
+                        {% elif file.endswith(('.ppt', '.pptx')) %}Bài thuyết trình
+                        {% elif file.endswith(('.xls', '.xlsx')) %}Bảng tính Excel
+                        {% elif file.endswith(('.jpg', '.jpeg', '.png')) %}Hình ảnh
+                        {% elif file.endswith(('.txt',)) %}File văn bản
+                        {% else %}File khác
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div>
+                <a href="/uploads/{{ request.args.get('role', '') }}/{{ file }}" 
+                   class="btn" 
+                   style="padding: 0.5rem 1rem; font-size: 0.9rem;"
+                   target="_blank">
+                    📥 Tải về
+                </a>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <div style="text-align: center; padding: 3rem; background: #f8f9fa; border-radius: 10px; margin-top: 2rem;">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">🔍</div>
+        <h3>Không tìm thấy kết quả</h3>
+        <p style="color: #666; margin-top: 1rem;">
+            {% if request.args.get('q') %}
+                Không có file nào chứa từ khóa "<strong>{{ request.args.get('q') }}</strong>"
+            {% else %}
+                Chưa có file nào được tải lên
+            {% endif %}
+        </p>
+        
+        <div style="margin-top: 2rem;">
+            {% if session.role == 'teacher' %}
+            <p style="color: #666;">Bạn có thể:</p>
+            <a href="/teacher" class="btn">📤 Tải lên tài liệu mới</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if files and request.args.get('q') %}
+    <div style="margin-top: 2rem; padding: 1rem; background: #e8f5e8; border-radius: 5px; border-left: 4px solid #4caf50;">
+        <h4>💡 Gợi ý tìm kiếm khác:</h4>
+        <div style="margin-top: 1rem;">
+            <a href="/search?role={{ request.args.get('role', '') }}&q=bài giảng" class="btn" style="margin: 0.25rem; padding: 0.5rem 1rem; font-size: 0.9rem;">Bài giảng</a>
+            <a href="/search?role={{ request.args.get('role', '') }}&q=đề thi" class="btn" style="margin: 0.25rem; padding: 0.5rem 1rem; font-size: 0.9rem;">Đề thi</a>
+            <a href="/search?role={{ request.args.get('role', '') }}&q=tài liệu" class="btn" style="margin: 0.25rem; padding: 0.5rem 1rem; font-size: 0.9rem;">Tài liệu</a>
+            <a href="/search?role={{ request.args.get('role', '') }}" class="btn btn-secondary" style="margin: 0.25rem; padding: 0.5rem 1rem; font-size: 0.9rem;">Xem tất cả</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// Highlight search terms
+document.addEventListener('DOMContentLoaded', function() {
+    const searchTerm = '{{ request.args.get("q", "") }}';
+    if (searchTerm) {
+        const fileItems = document.querySelectorAll('.file-list li strong');
+        fileItems.forEach(item => {
+            const regex = new RegExp(`(${searchTerm})`, 'gi');
+            item.innerHTML = item.innerHTML.replace(regex, '<mark style="background: #ffeb3b; padding: 0.1rem;">$1</mark>');
+        });
+    }
+});
+</script>
+{% endblock %}
