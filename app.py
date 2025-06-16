@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, session, render_template, send_from_directory, redirect, url_for
+from flask import Flask, request, jsonify, session, render_template, send_from_directory, redirect, url_for, render_template_string
 from ldap3 import Server, Connection, ALL, SUBTREE
 from werkzeug.utils import secure_filename
 import os
