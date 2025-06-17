@@ -32,9 +32,10 @@
     <div style="margin-top: 1.5rem; text-align: center;">
         <div style="position: relative; margin: 1rem 0;">
             <hr style="border: 0; height: 1px; background: #ddd;">
-            <span style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: white; padding: 0 15px; color: #666; font-size: 0.9rem;">HOẶC</span>
+            <span
+                style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: white; padding: 0 15px; color: #666; font-size: 0.9rem;">HOẶC</span>
         </div>
-        
+
         <form method="POST" action="/login" style="margin-top: 1rem;">
             <input type="hidden" name="guest_access" value="true">
             <button type="submit" class="btn" style="width: 100%; background: #28a745; border-color: #28a745;">
@@ -46,23 +47,35 @@
         </p>
     </div>
 
-    <div style="margin-top: 2rem; padding: 1rem; background: #f8f9fa; border-radius: 5px; border-left: 4px solid #667eea;">
-        <h4>📋 Tài khoản demo:</h4>
+    <div
+        style="margin-top: 2rem; padding: 1rem; background: #f8f9fa; border-radius: 5px; border-left: 4px solid #667eea;">
+        <h4>🌐 Giới thiệu hệ thống web</h4>
         <div style="margin-top: 1rem;">
-            <p><strong>👨‍🎓 Học sinh:</strong> <code>studentA</code> / <code>123</code></p>
-            <p><strong>👨‍🏫 Giáo viên:</strong> <code>teacherA</code> / <code>456</code></p>
+            <p>
+                Ứng dụng web được xây dựng nhằm mục đích tổ chức và mô phỏng môi trường thực hành tấn công trong chuỗi
+                <strong>attack chain</strong> trên hệ thống Active Directory.
+                Web hỗ trợ phân quyền theo vai trò (học sinh, giáo viên) với các chức năng như quản lý tài liệu, tìm
+                kiếm, upload và download.
+                Đây là điểm xuất phát cho các kịch bản tấn công từ phía web vào nội bộ, phục vụ cho các kỹ thuật như
+                Remote Code Execution (RCE), leo thang đặc quyền và lateral movement.
+            </p>
+            <p>
+                Hệ thống được thiết kế nhằm hỗ trợ quá trình kiểm thử bảo mật, đồng thời đóng vai trò như một phòng lab
+                thực hành cho sinh viên nghiên cứu và trải nghiệm các phương pháp khai thác và phòng thủ trong môi
+                trường giả lập sát thực tế.
+            </p>
         </div>
     </div>
 </div>
 
 <style>
-.btn {
-    transition: all 0.3s ease;
-}
+    .btn {
+        transition: all 0.3s ease;
+    }
 
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
 </style>
 {% endblock %}

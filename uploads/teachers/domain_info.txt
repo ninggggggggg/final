@@ -1,0 +1,69 @@
+﻿Get list of DCs in domain 'iris.com.vn' from '\\SVR-AD01.iris.com.vn'.
+    SVR-AD01.iris.com.vn [PDC]  [DS] Site: Default-First-Site-Name
+The command completed successfully
+The request will be processed at a domain controller for domain iris.com.vn.
+
+
+Group Accounts for \\SVR-AD01.iris.com.vn
+
+-------------------------------------------------------------------------------
+*$I31000-5N1VG865ITC9
+*Admins_Group
+*Cloneable Domain Controllers
+*Compliance Management
+*Delegated Setup
+*Discovery Management
+*DnsUpdateProxy
+*Domain Admins
+*Domain Computers
+*Domain Controllers
+*Domain Guests
+*Domain Users
+*Enterprise Admins
+*Enterprise Key Admins
+*Enterprise Read-only Domain Controllers
+*Exchange Servers
+*Exchange Trusted Subsystem
+*Exchange Windows Permissions
+*ExchangeLegacyInterop
+*G_Allow_WinRM
+*G_RDP
+*G_ShareAccess_ReadOnly
+*G_ShareAccess_RW
+*G_Software_Install
+*Group Policy Creator Owners
+*Help Desk
+*Hygiene Management
+*Key Admins
+*Managed Availability Servers
+*Organization Management
+*Protected Users
+*Public Folder Management
+*Read-only Domain Controllers
+*Recipient Management
+*Records Management
+*Schema Admins
+*Security Administrator
+*Security Reader
+*Server Management
+*Students_Group
+*Teacher_Group
+*UM Management
+*View-Only Organization Management
+The command completed successfully.
+
+
+GROUP INFORMATION
+-----------------
+
+Group Name                                 Type             SID          Attributes                                        
+========================================== ================ ============ ==================================================
+Everyone                                   Well-known group S-1-1-0      Mandatory group, Enabled by default, Enabled group
+BUILTIN\Users                              Alias            S-1-5-32-545 Mandatory group, Enabled by default, Enabled group
+NT AUTHORITY\INTERACTIVE                   Well-known group S-1-5-4      Mandatory group, Enabled by default, Enabled group
+CONSOLE LOGON                              Well-known group S-1-2-1      Mandatory group, Enabled by default, Enabled group
+NT AUTHORITY\Authenticated Users           Well-known group S-1-5-11     Mandatory group, Enabled by default, Enabled group
+NT AUTHORITY\This Organization             Well-known group S-1-5-15     Mandatory group, Enabled by default, Enabled group
+LOCAL                                      Well-known group S-1-2-0      Mandatory group, Enabled by default, Enabled group
+Authentication authority asserted identity Well-known group S-1-18-1     Mandatory group, Enabled by default, Enabled group
+Mandatory Label\Medium Mandatory Level     Label            S-1-16-8192                                                    

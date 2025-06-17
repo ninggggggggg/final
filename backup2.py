@@ -22,39 +22,31 @@ LDAP_BIND_USER = os.getenv("LDAP_BIND_USER")
 LDAP_BIND_PASSWORD = os.getenv("LDAP_BIND_PASSWORD")
 
 
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
+        if 'guest_access' in request.form:
+            session['username'] = 'guest'
+            session['role'] = 'guest'
+            return redirect(url_for('labs_home'))
+        
         username = request.form['username']
         password = request.form['password']
-        server = Server(LDAP_SERVER, get_info=ALL)
 
-        try:
-            conn = Connection(server, user=LDAP_BIND_USER, password=LDAP_BIND_PASSWORD, auto_bind=True)
-            conn.search(LDAP_BASE_DN, f'(sAMAccountName={username})', SUBTREE, attributes=['distinguishedName'])
+        # GIẢ LẬP NGƯỜI DÙNG CỐ ĐỊNH
+        mock_users = {
+            'studentA': {'password': '123', 'role': 'student'},
+            'teacherA': {'password': '456', 'role': 'teacher'}
+        }
 
-            if not conn.entries:
-                return render_template('login.html', error='User không tồn tại!')
-
-            user_dn = conn.entries[0].distinguishedName.value
-            conn.unbind()
-        except Exception as e:
-            return render_template('login.html', error=f'Lỗi kết nối LDAP: {str(e)}')
-
-        try:
-            user_conn = Connection(server, user=user_dn, password=password, auto_bind=True)
-            role = 'unknown'
-            if 'OU=Students' in user_dn:
-                role = 'student'
-            elif 'OU=Teachers' in user_dn:
-                role = 'teacher'
-
+        user = mock_users.get(username)
+        if user and user['password'] == password:
             session['username'] = username
-            session['role'] = role
-            user_conn.unbind()
-            return redirect(url_for(f'{role}_home'))
-        except Exception as e:
-            return render_template('login.html', error='Đăng nhập thất bại!')
+            session['role'] = user['role']
+            return redirect(url_for(f"{user['role']}_home"))
+        else:
+            return render_template('login.html', error='Sai tài khoản hoặc mật khẩu!')
 
     return render_template('login.html')
 
@@ -109,7 +101,6 @@ def labs_home():
         }
     ]
 
-    
     # Dữ liệu cho các Lab
     labs = [
         {
@@ -204,12 +195,30 @@ def search_files():
 
     return render_template_string(template, files=filtered_files)
 
-@app.route('/student', methods=['GET'])
+@app.route('/student', methods=['GET', 'POST'])
 def student_home():
     if 'username' not in session or session['role'] != 'student':
         return redirect(url_for('login'))
 
-    return render_template('student_home.html')
+    error = None
+    success = None
+
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            error = 'Không có file upload!'
+        else:
+            file = request.files['file']
+            if file.filename == '':
+                error = 'Tên file trống!'
+            else:
+                try:
+                    filename = secure_filename(file.filename)
+                    file.save(os.path.join(UPLOAD_FOLDER['student'], filename))
+                    success = f'Đã tải lên thành công: {filename}'
+                except Exception as e:
+                    error = f'Lỗi khi tải file: {str(e)}'
+
+    return render_template('student_home.html', error=error, success=success)
 
 
 @app.route('/teacher', methods=['GET', 'POST'])
