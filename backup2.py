@@ -195,30 +195,12 @@ def search_files():
 
     return render_template_string(template, files=filtered_files)
 
-@app.route('/student', methods=['GET', 'POST'])
+@app.route('/student', methods=['GET'])
 def student_home():
     if 'username' not in session or session['role'] != 'student':
         return redirect(url_for('login'))
 
-    error = None
-    success = None
-
-    if request.method == 'POST':
-        if 'file' not in request.files:
-            error = 'Không có file upload!'
-        else:
-            file = request.files['file']
-            if file.filename == '':
-                error = 'Tên file trống!'
-            else:
-                try:
-                    filename = secure_filename(file.filename)
-                    file.save(os.path.join(UPLOAD_FOLDER['student'], filename))
-                    success = f'Đã tải lên thành công: {filename}'
-                except Exception as e:
-                    error = f'Lỗi khi tải file: {str(e)}'
-
-    return render_template('student_home.html', error=error, success=success)
+    return render_template('student_home.html')
 
 
 @app.route('/teacher', methods=['GET', 'POST'])
