@@ -1,86 +1,636 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang chủ Sinh viên - Hệ thống quản lý tài liệu</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-{% block title %}Trang chủ Giáo viên - Hệ thống quản lý tài liệu{% endblock %}
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
 
-{% block content %}
-<div class="container">
-    <div class="navbar">
-        <div class="user-info">
-            <h2>👨‍🏫 Chào sinh viên: {{ session.username }}</h2>
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .user-info h2 {
+            color: #4a5568;
+            font-weight: 600;
+            font-size: 1.5em;
+        }
+
+        .search-section {
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .search-section h3 {
+            color: #4a5568;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .search-form input[type="text"] {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .search-form input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            background: white;
+        }
+
+        .files-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 30px;
+        }
+
+        .files-section h3 {
+            color: #4a5568;
+            margin-bottom: 25px;
+            font-size: 1.4em;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .file-item {
+            background: linear-gradient(145deg, #ffffff, #f8fafc);
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .file-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .file-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+            border-color: #667eea;
+        }
+
+        .file-item:hover::before {
+            transform: scaleY(1);
+        }
+
+        .file-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .file-icon {
+            font-size: 2.5em;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+        }
+
+        .file-icon.pdf { background: linear-gradient(135deg, #fef3c7, #fde68a); }
+        .file-icon.doc { background: linear-gradient(135deg, #dbeafe, #bfdbfe); }
+        .file-icon.excel { background: linear-gradient(135deg, #dcfce7, #bbf7d0); }
+        .file-icon.image { background: linear-gradient(135deg, #fce7f3, #fbcfe8); }
+
+        .file-details {
+            flex: 1;
+        }
+
+        .file-name {
+            color: #1e40af;
+            text-decoration: none;
+            font-size: 1.1em;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 8px;
+            transition: color 0.3s ease;
+            line-height: 1.4;
+        }
+
+        .file-name:hover {
+            color: #667eea;
+        }
+
+        .file-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .file-info {
+            color: #64748b;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .file-size {
+            background: #f1f5f9;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8em;
+            color: #475569;
+            font-weight: 500;
+        }
+
+        .file-actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #64748b;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(100, 116, 139, 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .no-files {
+            text-align: center;
+            color: #64748b;
+            padding: 60px 20px;
+            background: linear-gradient(145deg, #f8fafc, #f1f5f9);
+            border-radius: 12px;
+            font-size: 1.1em;
+            border: 2px dashed #cbd5e1;
+        }
+
+        .no-files-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .tips-section {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            padding: 25px;
+            border-radius: 15px;
+            border-left: 5px solid #f59e0b;
+            box-shadow: 0 4px 20px rgba(245, 158, 11, 0.2);
+        }
+
+        .tips-section h4 {
+            color: #92400e;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .tips-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+        }
+
+        .tips-content p {
+            margin: 8px 0;
+            color: #78350f;
+            font-weight: 500;
+        }
+
+        code {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            color: #dc2626;
+            font-weight: 600;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px 0;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        .file-count {
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .view-toggle {
+            display: flex;
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .view-toggle button {
+            padding: 8px 12px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .view-toggle button.active {
+            background: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .file-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .navbar {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .search-form {
+                flex-direction: column;
+            }
+            
+            .tips-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="navbar fade-in">
+            <div class="user-info">
+                <h2>👨‍🎓 Chào sinh viên: Nguyễn Văn A</h2>
+            </div>
+            <a href="/logout" class="btn btn-secondary">🚪 Đăng xuất</a>
         </div>
-        <a href="/logout" class="btn btn-secondary">🚪 Đăng xuất</a>
-    </div>
 
-    <div class="tabs">
-        <div class="tab active" onclick="switchTab('upload')">📤 Upload tài liệu</div>
-        <div class="tab" onclick="switchTab('search')">🔍 Tìm kiếm</div>
-    </div>
-
-    <!-- Upload Tab -->
-    <div class="tab-content active" id="upload-tab">
-        {% if error %}
-        <div class="error">
-            <strong>❌ Lỗi:</strong> {{ error }}
-        </div>
-        {% endif %}
-
-        <div class="upload-area">
-            <form action="/teacher" method="post" enctype="multipart/form-data">
-                <h3>📁 Tải lên tài liệu mới</h3>
-                <p style="color: #666; margin-bottom: 1rem;">Chọn file để tải lên</p>
-                
-                <div class="form-group">
-                    <input type="file" 
-                           name="file" 
-                           accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.jpg,.png,.xlsx,.xls" 
-                           required>
-                </div>
-                
-                <button type="submit" class="btn">📤 Tải lên</button>
+        <!-- Search Section -->
+        <div class="search-section fade-in">
+            <h3>🔍 Tìm kiếm trong tài liệu</h3>
+            
+            <form class="search-form">
+                <input type="text" placeholder="Tìm kiếm tài liệu..." id="teacher-search-input">
+                <button type="submit" class="btn btn-primary">🔍 Tìm kiếm</button>
             </form>
         </div>
 
-        <div style="margin-top: 2rem; padding: 1rem; background: #f0f9ff; border-radius: 5px; border-left: 4px solid #0ea5e9;">
-            <h4>📋 Định dạng file được hỗ trợ:</h4>
-            <div style="margin-top: 1rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem;">
-                <div>📄 <strong>Tài liệu:</strong> PDF, DOC, DOCX</div>
-                <div>📊 <strong>Bài thuyết trình:</strong> PPT, PPTX</div>
-                <div>📈 <strong>Bảng tính:</strong> XLS, XLSX</div>
-                <div>🖼️ <strong>Hình ảnh:</strong> JPG, PNG</div>
+        <!-- Teacher Files Section -->
+        <div class="files-section fade-in">
+            <div class="stats-bar">
+                <div>
+                    <h3>📚 Tài liệu từ Giáo viên</h3>
+                    <span class="file-count">Tổng cộng: 8 tài liệu</span>
+                </div>
+                <div class="view-toggle">
+                    <button class="active" onclick="toggleView('grid')">🔲 Lưới</button>
+                    <button onclick="toggleView('list')">📋 Danh sách</button>
+                </div>
+            </div>
+
+            <div class="file-grid" id="file-container">
+                <!-- PDF Files -->
+                <div class="file-item">
+                    <div class="file-header">
+                        <span class="file-icon pdf">📄</span>
+                        <div class="file-details">
+                            <a href="#" class="file-name">Bài giảng Toán học Lớp 12 - Chương 1.pdf</a>
+                            <div class="file-meta">
+                                <span class="file-info">
+                                    📅 Đã tải lên: 15/06/2025 14:30
+                                </span>
+                                <span class="file-info">
+                                    👤 Giáo viên: Trần Thị B
+                                    <span class="file-size">2.5 MB</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="file-actions">
+                        <a href="#" class="btn btn-primary">👁️ Xem</a>
+                        <a href="#" class="btn btn-outline">⬇️ Tải về</a>
+                    </div>
+                </div>
+
+                <!-- Word Document -->
+                <div class="file-item">
+                    <div class="file-header">
+                        <span class="file-icon doc">📝</span>
+                        <div class="file-details">
+                            <a href="#" class="file-name">Đề thi giữa kỳ Văn học - Học kỳ I.docx</a>
+                            <div class="file-meta">
+                                <span class="file-info">
+                                    📅 Đã tải lên: 14/06/2025 09:15
+                                </span>
+                                <span class="file-info">
+                                    👤 Giáo viên: Lê Văn C
+                                    <span class="file-size">1.2 MB</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="file-actions">
+                        <a href="#" class="btn btn-primary">👁️ Xem</a>
+                        <a href="#" class="btn btn-outline">⬇️ Tải về</a>
+                    </div>
+                </div>
+
+                <!-- Excel File -->
+                <div class="file-item">
+                    <div class="file-header">
+                        <span class="file-icon excel">📊</span>
+                        <div class="file-details">
+                            <a href="#" class="file-name">Bảng điểm Hóa học - Lớp 11A1.xlsx</a>
+                            <div class="file-meta">
+                                <span class="file-info">
+                                    📅 Đã tải lên: 13/06/2025 16:45
+                                </span>
+                                <span class="file-info">
+                                    👤 Giáo viên: Phạm Thị D
+                                    <span class="file-size">856 KB</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="file-actions">
+                        <a href="#" class="btn btn-primary">👁️ Xem</a>
+                        <a href="#" class="btn btn-outline">⬇️ Tải về</a>
+                    </div>
+                </div>
+
+                <!-- PowerPoint -->
+                <div class="file-item">
+                    <div class="file-header">
+                        <span class="file-icon">🎯</span>
+                        <div class="file-details">
+                            <a href="#" class="file-name">Thuyết trình Sinh học - Hệ tuần hoàn.pptx</a>
+                            <div class="file-meta">
+                                <span class="file-info">
+                                    📅 Đã tải lên: 12/06/2025 11:20
+                                </span>
+                                <span class="file-info">
+                                    👤 Giáo viên: Hoàng Văn E
+                                    <span class="file-size">4.1 MB</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="file-actions">
+                        <a href="#" class="btn btn-primary">👁️ Xem</a>
+                        <a href="#" class="btn btn-outline">⬇️ Tải về</a>
+                    </div>
+                </div>
+
+                <!-- Image File -->
+                <div class="file-item">
+                    <div class="file-header">
+                        <span class="file-icon image">🖼️</span>
+                        <div class="file-details">
+                            <a href="#" class="file-name">Sơ đồ tư duy Vật lý - Chương Điện học.png</a>
+                            <div class="file-meta">
+                                <span class="file-info">
+                                    📅 Đã tải lên: 11/06/2025 08:30
+                                </span>
+                                <span class="file-info">
+                                    👤 Giáo viên: Ngô Thị F
+                                    <span class="file-size">3.2 MB</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="file-actions">
+                        <a href="#" class="btn btn-primary">👁️ Xem</a>
+                        <a href="#" class="btn btn-outline">⬇️ Tải về</a>
+                    </div>
+                </div>
+
+                <!-- More files -->
+                <div class="file-item">
+                    <div class="file-header">
+                        <span class="file-icon pdf">📄</span>
+                        <div class="file-details">
+                            <a href="#" class="file-name">Hướng dẫn làm bài tập Lịch sử - Thế kỷ 20.pdf</a>
+                            <div class="file-meta">
+                                <span class="file-info">
+                                    📅 Đã tải lên: 10/06/2025 15:45
+                                </span>
+                                <span class="file-info">
+                                    👤 Giáo viên: Vũ Văn G
+                                    <span class="file-size">1.8 MB</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="file-actions">
+                        <a href="#" class="btn btn-primary">👁️ Xem</a>
+                        <a href="#" class="btn btn-outline">⬇️ Tải về</a>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Search Tab -->
-    <div class="tab-content" id="search-tab">
-        <h3>🔍 Tìm kiếm trong tài liệu của bạn</h3>
-        
-        <form action="/search" method="get" class="search-form">
-            <input type="hidden" name="role" value="teacher">
-            <input type="text" name="q" placeholder="Tìm kiếm trong tài liệu của bạn..." id="teacher-search-input">
-            <button type="submit" class="btn">🔍 Tìm kiếm</button>
-        </form>
-
-        <div style="margin-top: 2rem; padding: 1rem; background: #fef3c7; border-radius: 5px; border-left: 4px solid #f59e0b;">
-            <h4>💡 Mẹo tìm kiếm:</h4>
-            <div style="margin-top: 1rem;">
-                <p>• Tìm theo tên file: <code>bai_giang_toan</code></p>
+        <div class="tips-section fade-in">
+            <h4>💡 Mẹo tìm kiếm hiệu quả:</h4>
+            <div class="tips-content">
+                <p>• Tìm theo tên file: <code>bai_giang</code></p>
                 <p>• Tìm theo phần mở rộng: <code>.pdf</code> hoặc <code>.ppt</code></p>
                 <p>• Tìm theo từ khóa: <code>đề thi</code>, <code>bài tập</code></p>
                 <p>• Kết hợp nhiều từ khóa: <code>toán học lớp 10</code></p>
             </div>
         </div>
     </div>
-</div>
 
-<script>
+    <script>
+        // Animation on scroll
+        function animateOnScroll() {
+            const elements = document.querySelectorAll('.file-item');
+            elements.forEach((element, index) => {
+                element.style.animationDelay = `${index * 0.1}s`;
+                element.classList.add('fade-in');
+            });
+        }
 
-document.addEventListener('DOMContentLoaded', function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('q')) {
-        switchTab('search');
-        document.getElementById('teacher-search-input').value = urlParams.get('q');
-    }
-});
-</script>
-{% endblock %}
+        // Toggle view between grid and list
+        function toggleView(viewType) {
+            const container = document.getElementById('file-container');
+            const buttons = document.querySelectorAll('.view-toggle button');
+            
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (viewType === 'list') {
+                container.style.gridTemplateColumns = '1fr';
+                container.querySelectorAll('.file-item').forEach(item => {
+                    item.style.display = 'flex';
+                    item.style.alignItems = 'center';
+                });
+            } else {
+                container.style.gridTemplateColumns = 'repeat(auto-fill, minmax(350px, 1fr))';
+                container.querySelectorAll('.file-item').forEach(item => {
+                    item.style.display = 'block';
+                });
+            }
+        }
+
+        // Search functionality
+        document.getElementById('teacher-search-input').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const fileItems = document.querySelectorAll('.file-item');
+            
+            fileItems.forEach(item => {
+                const fileName = item.querySelector('.file-name').textContent.toLowerCase();
+                if (fileName.includes(searchTerm)) {
+                    item.style.display = 'block';
+                    item.style.opacity = '1';
+                } else {
+                    item.style.opacity = '0.3';
+                }
+            });
+        });
+
+        // Initialize animations
+        document.addEventListener('DOMContentLoaded', function() {
+            animateOnScroll();
+            
+            // Add hover effects
+            document.querySelectorAll('.file-item').forEach(item => {
+                item.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-5px) scale(1.02)';
+                });
+                
+                item.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

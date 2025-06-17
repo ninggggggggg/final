@@ -2,6 +2,212 @@
 
 {% block title %}Trang chủ giáo viên - {{ session.username }}{% endblock %}
 
+{% block additional_styles %}
+<style>
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    background: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.tab {
+    padding: 10px 20px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.tab.active {
+    background: #0066cc;
+    color: white;
+}
+
+.tab-content {
+    display: none;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.header {
+    margin-bottom: 20px;
+}
+
+.header h3 {
+    margin-bottom: 10px;
+}
+
+.upload-area {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.demo-info {
+    background: #fef3c7;
+    padding: 20px;
+    border-radius: 5px;
+    border-left: 4px solid #f59e0b;
+}
+
+.demo-info h4 {
+    margin-bottom: 10px;
+}
+
+.demo-info p {
+    margin: 5px 0;
+}
+
+.files-section {
+    margin-top: 20px;
+}
+
+.file-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.file-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    border: 1px solid #e9ecef;
+}
+
+.file-item:hover {
+    background: #e9ecef;
+}
+
+.file-icon {
+    margin-right: 15px;
+    font-size: 1.5em;
+    min-width: 30px;
+    text-align: center;
+}
+
+.file-name {
+    flex: 1;
+    color: #0066cc;
+    text-decoration: none;
+    font-size: 1.1em;
+}
+
+.file-name:hover {
+    text-decoration: underline;
+}
+
+.file-info {
+    color: #6c757d;
+    font-size: 0.9em;
+    margin-left: 15px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    background: #0066cc;
+    color: white;
+    transition: background-color 0.2s;
+}
+
+.btn:hover {
+    background: #0056b3;
+}
+
+.btn-secondary {
+    background: #6c757d;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+}
+
+.error {
+    background: #fee2e2;
+    color: #dc2626;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    border-left: 4px solid #dc2626;
+}
+
+.success {
+    background: #ecfdf5;
+    color: #059669;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    border-left: 4px solid #059669;
+}
+
+.search-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+.search-form input[type="text"] {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1em;
+}
+
+.no-files {
+    text-align: center;
+    color: #6c757d;
+    font-style: italic;
+    padding: 40px 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 2px dashed #dee2e6;
+}
+
+.file-count {
+    color: #6c757d;
+    font-size: 0.9em;
+    margin-bottom: 15px;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container">
     <div class="navbar">
@@ -13,19 +219,25 @@
 
     <div class="tabs">
         <div class="tab active" onclick="switchTab('upload')">📤 Upload tài liệu</div>
-        <div class="tab" onclick="switchTab('search')">🔍 Quản lý tài liệu</div>
+        <div class="tab" onclick="switchTab('manage')">📁 Quản lý tài liệu</div>
     </div>
 
     <!-- Upload Tab -->
     <div class="tab-content active" id="upload-tab">
         <div class="header">
             <h3>📁 Tải lên tài liệu mới</h3>
-            <p>Chia sẻ tài liệu giảng dạy với học sinh</p>
+            <p>Chia sẻ tài liệu giảng dạy với sinh viên</p>
         </div>
 
         {% if error %}
         <div class="error">
             ⚠️ {{ error }}
+        </div>
+        {% endif %}
+
+        {% if success %}
+        <div class="success">
+            ✅ {{ success }}
         </div>
         {% endif %}
 
@@ -52,25 +264,81 @@
         </div>
     </div>
 
-    <!-- Search Tab -->
-    <div class="tab-content" id="search-tab">
+    <!-- Manage Files Tab -->
+    <div class="tab-content" id="manage-tab">
         <div class="header">
-            <h3>🔍 Quản lý tài liệu đã tải lên</h3>
-            <p>Tìm kiếm và quản lý tài liệu của bạn</p>
+            <h3>📁 Quản lý tài liệu của tôi</h3>
+            <p>Xem và quản lý tài liệu bạn đã tải lên</p>
         </div>
 
         <form action="/search" method="get" class="search-form">
             <input type="hidden" name="role" value="teacher">
-            <input type="text" name="q" placeholder="Tìm kiếm trong tài liệu của bạn..." autocomplete="off">
+            <input type="text" name="q" placeholder="Tìm kiếm trong tài liệu của bạn..." id="teacher-search-input">
             <button type="submit" class="btn">🔍 Tìm kiếm</button>
         </form>
 
-        <div class="upload-area">
-            <h4>📊 Thống kê</h4>
-            <p>📁 Tổng số tài liệu đã tải lên</p>
-            <p>👥 Số lượt truy cập từ học sinh</p>
-            <p>🔄 Cập nhật gần nhất</p>
+        <!-- Teacher's Own Files Section -->
+        <div class="files-section">
+            {% if teacher_files %}
+                <div class="file-count">
+                    📊 Tổng cộng: {{ teacher_files|length }} tài liệu
+                </div>
+                <div class="file-list">
+                    {% for file in teacher_files %}
+                    <div class="file-item">
+                        <span class="file-icon">
+                            {% if file.lower().endswith('.pdf') %}📄
+                            {% elif file.lower().endswith(('.doc', '.docx')) %}📝
+                            {% elif file.lower().endswith(('.xls', '.xlsx')) %}📊
+                            {% elif file.lower().endswith(('.jpg', '.jpeg', '.png')) %}🖼️
+                            {% elif file.lower().endswith(('.ppt', '.pptx')) %}📊
+                            {% else %}📄
+                            {% endif %}
+                        </span>
+                        <a href="{{ url_for('uploaded_file', role='teacher', filename=file) }}" class="file-name" target="_blank">
+                            {{ file }}
+                        </a>
+                        <span class="file-info">
+                            {% set file_path = config['UPLOAD_FOLDER']['teacher'] + '/' + file %}
+                            Tải lên: {{ datetime.fromtimestamp(path.getmtime(file_path)).strftime('%d/%m/%Y lúc %H:%M') }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="no-files">
+                    📂 Chưa có tài liệu nào được tải lên
+                    <br>
+                    <small>Hãy chuyển sang tab "Upload tài liệu" để tải lên tài liệu đầu tiên của bạn</small>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>
+
+<script>
+function switchTab(tabId) {
+    // Remove active class from all tabs and content
+    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    
+    // Add active class to selected tab and content
+    if (tabId === 'upload') {
+        document.querySelector('.tab:nth-child(1)').classList.add('active');
+        document.getElementById('upload-tab').classList.add('active');
+    } else {
+        document.querySelector('.tab:nth-child(2)').classList.add('active');
+        document.getElementById('manage-tab').classList.add('active');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('q')) {
+        document.getElementById('teacher-search-input').value = urlParams.get('q');
+        // Switch to manage tab if there's a search query
+        switchTab('manage');
+    }
+});
+</script>
 {% endblock %}

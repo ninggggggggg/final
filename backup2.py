@@ -1,12 +1,16 @@
 from flask import Flask, request, jsonify, session, render_template, send_from_directory, redirect, url_for, render_template_string
 from ldap3 import Server, Connection, ALL, SUBTREE
 from werkzeug.utils import secure_filename
+from datetime import datetime
+from os import path
 import os
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
 
-UPLOAD_FOLDER_BASE = 'uploads'
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+
+UPLOAD_FOLDER_BASE = os.path.join(BASE_DIR, 'uploads')
 UPLOAD_FOLDER = {
     'student': os.path.join(UPLOAD_FOLDER_BASE, 'students'),
     'teacher': os.path.join(UPLOAD_FOLDER_BASE, 'teachers')
@@ -20,7 +24,6 @@ LDAP_SERVER = os.getenv("LDAP_SERVER")
 LDAP_BASE_DN = os.getenv("LDAP_BASE_DN")
 LDAP_BIND_USER = os.getenv("LDAP_BIND_USER")
 LDAP_BIND_PASSWORD = os.getenv("LDAP_BIND_PASSWORD")
-
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -101,6 +104,7 @@ def labs_home():
         }
     ]
 
+    
     # Dữ liệu cho các Lab
     labs = [
         {
@@ -199,9 +203,30 @@ def search_files():
 def student_home():
     if 'username' not in session or session['role'] != 'student':
         return redirect(url_for('login'))
-
-    return render_template('student_home.html')
-
+    
+    # Lấy danh sách tài liệu từ thư mục teachers
+    teacher_files = []
+    try:
+        print(f"Reading files from: {UPLOAD_FOLDER['teacher']}")  # Debug print
+        teacher_files = os.listdir(UPLOAD_FOLDER['teacher'])
+        print(f"Found files: {teacher_files}")  # Debug print
+        
+        # Sắp xếp files theo thời gian mới nhất
+        teacher_files.sort(key=lambda x: os.path.getmtime(os.path.join(UPLOAD_FOLDER['teacher'], x)), reverse=True)
+        print(f"Sorted files: {teacher_files}")  # Debug print
+    except Exception as e:
+        print(f"Error reading teacher files: {str(e)}")
+    
+    # Debug print
+    print(f"Rendering template with:")
+    print(f"- teacher_files: {teacher_files}")
+    print(f"- UPLOAD_FOLDER: {UPLOAD_FOLDER}")
+    
+    return render_template('student_home.html', 
+                         teacher_files=teacher_files,
+                         config={'UPLOAD_FOLDER': UPLOAD_FOLDER},
+                         path=os.path,  # Changed from path to os.path
+                         datetime=datetime)
 
 @app.route('/teacher', methods=['GET', 'POST'])
 def teacher_home():
@@ -221,19 +246,60 @@ def teacher_home():
             else:
                 try:
                     filename = secure_filename(file.filename)
-                    file.save(os.path.join(UPLOAD_FOLDER['teacher'], filename))
+                    file_path = os.path.join(UPLOAD_FOLDER['teacher'], filename)
+                    file.save(file_path)
                     success = f'Đã tải lên thành công: {filename}'
                 except Exception as e:
                     error = f'Lỗi khi tải file: {str(e)}'
 
-    return render_template('teacher_home.html', error=error, success=success)
+    # Chỉ lấy danh sách tài liệu từ thư mục teachers (tài liệu của chính teacher)
+    teacher_files = []
+    
+    try:
+        teacher_dir = UPLOAD_FOLDER['teacher']
+        print(f"Reading teacher files from: {teacher_dir}")
+        
+        if os.path.exists(teacher_dir):
+            all_items = os.listdir(teacher_dir)
+            # Lọc chỉ lấy files, không lấy thư mục
+            teacher_files = [f for f in all_items if os.path.isfile(os.path.join(teacher_dir, f))]
+            # Sắp xếp files theo thời gian mới nhất
+            teacher_files.sort(key=lambda x: os.path.getmtime(os.path.join(teacher_dir, x)), reverse=True)
+            print(f"Found teacher files: {teacher_files}")
+        else:
+            print(f"Teacher directory does not exist: {teacher_dir}")
+            
+    except Exception as e:
+        print(f"Error reading teacher files: {str(e)}")
+        teacher_files = []
+
+    return render_template('teacher_home.html', 
+                         error=error, 
+                         success=success,
+                         teacher_files=teacher_files,
+                         config={'UPLOAD_FOLDER': UPLOAD_FOLDER},
+                         path=os.path,  # Truyền os.path module
+                         datetime=datetime)
 
 @app.route('/uploads/<role>/<filename>')
 def uploaded_file(role, filename):
     if role not in UPLOAD_FOLDER:
         return "Không hợp lệ!", 403
-    if 'username' not in session or session['role'] != role:
+    
+    # Teacher có thể xem tất cả files (của teacher và student)
+    # Student chỉ có thể xem files của teacher
+    if 'username' not in session:
         return redirect(url_for('login'))
+    
+    user_role = session['role']
+    if user_role == 'teacher':
+        # Teacher có thể xem files từ cả hai thư mục
+        pass
+    elif user_role == 'student' and role == 'teacher':
+        # Student chỉ có thể xem files từ teacher
+        pass
+    else:
+        return "Không có quyền truy cập!", 403
 
     return send_from_directory(UPLOAD_FOLDER[role], filename)
 
